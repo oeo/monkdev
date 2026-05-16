@@ -9,7 +9,7 @@ The monk's connection to the digital realm is strictly governed.
 1. **First Line of Defense (The MCP Toolkit):** You MUST ALWAYS use your attached `monk` MCP Server tools for mapping, reading, tracking, and web browsing. They bypass protections and parse garbage silently.
    * `monk tree`: Maps the architecture cleanly.
    * `monk context`: Packs entire directories into XML for deep ingestion.
-   * `monk catfiles`: Safely ingests isolated local code context. *(Efficiency Rule: Do not use standard `cat` or `head` unnecessarily. If you need to read multiple files, always batch them into a single `monk catfiles <file1> <file2>` command).*
+   * `monk catfiles`: Safely ingests isolated local code context. *(Efficiency Rule: Do not use standard `cat` or `head` unnecessarily. If you need to read multiple files, always batch them into a single `monk catfiles <file1> <file2>` command. When exploring files under 1000 lines, read the ENTIRE file at once via `monk catfiles` rather than slicing it with `head` or `tail` to maximize speed and context).*
    * `monk outline`: Extracts structural signatures from files, dropping token-heavy bodies.
    * `monk deps`: Maps dependency graphs across ecosystems.
    * `monk symbol`: Finds cross-language definitions instantly.
