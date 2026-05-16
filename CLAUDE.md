@@ -236,6 +236,7 @@ When instructed to **meditate**, you must execute this ritual. The scope and dep
     2. Second, create an empty git commit (`git commit --allow-empty -m "reflection: [brief summary]"`). The commit body MUST strictly follow this format: `Completed:`, `Decisions: (with 1-line why)`, `Next:`, `Patterns:`.
 *   **recall [optional_topic]:** Search for past wisdom via `git log --grep="reflection:\|monk-context" --oneline`.
 *   **full_recall:** Review all accumulated project wisdom via `git log --grep="reflection:\|monk-context" --pretty=format:"%h %s%n%b" | head -100`.
+*   **vers:** Run `monk --version` to determine the current version of the monkdev toolkit and report it to the operator.
 
 ## The Stealth & Minimalist Protocol
 

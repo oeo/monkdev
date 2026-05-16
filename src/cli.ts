@@ -1,10 +1,11 @@
 import { defineCommand, runMain } from "citty";
 import { tools } from "./tools";
+import pkg from "../package.json";
 
 const main = defineCommand({
   meta: {
     name: "monk",
-    version: "1.0.0",
+    version: pkg.version,
     description: "The holy toolkit for the monk developer.",
   },
   subCommands: Object.fromEntries(

@@ -9,3 +9,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - Finalized repository structure, flattened testing architecture, and fully synthesized the Monk persona prompt.
 - Reorganized CLAUDE.md to lead with the Monk Identity and nested the Bun framework instructions under the Architecture section.
+
+### Added
+- Added 'vers' command directive and toolkit versioning (package.json and citty configs).

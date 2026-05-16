@@ -6,11 +6,12 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { tools } from "./tools/index.ts";
 import { $ } from "bun";
+import pkg from "../package.json";
 
 const server = new Server(
   {
     name: "monk-toolkit",
-    version: "1.0.0",
+    version: pkg.version,
   },
   {
     capabilities: {
