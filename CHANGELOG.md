@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Changed
+- Added comprehensive tools table and brief Monk persona explanation to the README.
 - Finalized repository structure, flattened testing architecture, and fully synthesized the Monk persona prompt.
 - Reorganized CLAUDE.md to lead with the Monk Identity and nested the Bun framework instructions under the Architecture section.
 
