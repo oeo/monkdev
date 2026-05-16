@@ -79,24 +79,31 @@ export default defineCommand({
           }
 
           // Read first 4KB to check for null bytes (identifies binaries)
-          const slice = file.slice(0, 4096);
-          const buffer = new Uint8Array(await slice.arrayBuffer());
           let isBinary = false;
-          for (let i = 0; i < buffer.length; i++) {
-            if (buffer[i] === 0) {
-              isBinary = true;
-              break;
+          try {
+            const slice = file.slice(0, 4096);
+            const buffer = new Uint8Array(await slice.arrayBuffer());
+            for (let i = 0; i < buffer.length; i++) {
+              if (buffer[i] === 0) {
+                isBinary = true;
+                break;
+              }
             }
+          } catch (e) {
+            continue; // Skip inaccessible files like broken symlinks
           }
 
           if (isBinary) {
             continue;
           }
 
-          const text = await file.text();
-          const loc = text.split("\n").length;
-
-          results.push({ loc, path: relPath });
+          try {
+            const text = await file.text();
+            const loc = text.split("\n").length;
+            results.push({ loc, path: relPath });
+          } catch (e) {
+            // Skip files that error on read
+          }
         }
       }
     }

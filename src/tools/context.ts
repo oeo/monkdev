@@ -78,14 +78,18 @@ export default defineCommand({
 
           if (size > MAX_FILE_SIZE) continue;
 
-          const slice = file.slice(0, 4096);
-          const buffer = new Uint8Array(await slice.arrayBuffer());
           let isBinary = false;
-          for (let i = 0; i < buffer.length; i++) {
-            if (buffer[i] === 0) {
-              isBinary = true;
-              break;
+          try {
+            const slice = file.slice(0, 4096);
+            const buffer = new Uint8Array(await slice.arrayBuffer());
+            for (let i = 0; i < buffer.length; i++) {
+              if (buffer[i] === 0) {
+                isBinary = true;
+                break;
+              }
             }
+          } catch (e) {
+            continue;
           }
 
           if (isBinary) continue;

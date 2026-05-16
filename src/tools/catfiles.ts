@@ -42,14 +42,19 @@ export default defineCommand({
       }
 
       // Check if binary by looking for null bytes in the first 4KB
-      const slice = file.slice(0, 4096);
-      const buffer = new Uint8Array(await slice.arrayBuffer());
       let isBinary = false;
-      for (let i = 0; i < buffer.length; i++) {
-        if (buffer[i] === 0) {
-          isBinary = true;
-          break;
+      try {
+        const slice = file.slice(0, 4096);
+        const buffer = new Uint8Array(await slice.arrayBuffer());
+        for (let i = 0; i < buffer.length; i++) {
+          if (buffer[i] === 0) {
+            isBinary = true;
+            break;
+          }
         }
+      } catch (e) {
+        console.log(`catfile ${filePath} (ERROR_FILE_UNREADABLE)`);
+        continue;
       }
 
       if (isBinary) {
@@ -57,7 +62,13 @@ export default defineCommand({
         continue;
       }
 
-      const text = await file.text();
+      let text: string;
+      try {
+        text = await file.text();
+      } catch (e) {
+        console.log(`catfile ${filePath} (ERROR_FILE_UNREADABLE)`);
+        continue;
+      }
       const lines = text.split("\n");
 
       if (lines.length > 5000) {

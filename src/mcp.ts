@@ -87,9 +87,10 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   try {
+    const MONK_BIN = require("node:path").join(import.meta.dir, "../bin/monk");
     // Array expansion in Bun ensures clean parameter passing
     const cmdArgs = [name, ...positionalArgs, ...flagArgs];
-    const { stdout, stderr, exitCode } = await $`./bin/monk ${cmdArgs}`.quiet();
+    const { stdout, stderr, exitCode } = await $`${MONK_BIN} ${cmdArgs}`.quiet();
     
     if (exitCode !== 0) {
       return {
