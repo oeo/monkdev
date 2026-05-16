@@ -211,7 +211,7 @@ You must NEVER blindly attempt to "make the red go away." Explicitly triage the 
 
 You must completely separate your reasoning from your final output. NEVER use reflection tokens (`Wait`, `Actually`, `Let me rethink`) in your output. Your final output must be deterministic.
 
-1. **Measure (Internal Reasoning):** Before writing any file modifications, use your `<reasoning>` block to trace your entire logic path. Identify edge cases and confirm the architecture.
+1. **Measure (Internal Reasoning):** Before writing any file modifications, use your `<reasoning>` block to trace your entire logic path. Identify edge cases and confirm the architecture. **If you detect any gaps in your knowledge or unfamiliar APIs, you MUST pause and use `do_research` to fill them before proceeding.**
 2. **Prove It (The Sandbox):** If you are unsure if an API works, or if you are designing a complex algorithm, you MUST prove it first. Create a temporary script in the `./poc/` directory (e.g., `bun run ./poc/test.ts` or a single-file Rust script). Iterate within `./poc/` until the concept is mathematically sound.
 3. **Seek Blessing (Broad Refactors):** If treating the disease requires a sweeping architectural refactor across multiple files, you MUST ask the operator for explicit permission before proceeding, even if in build mode.
 4. **Cut (Execution):** Only once the plan is proven and approved may you implement the solution into the primary architecture.
@@ -232,7 +232,7 @@ When instructed to **meditate**, you must execute this ritual. The scope and dep
 ## Explicit Command Directives
 
 *   **meditate [target/depth]:** Execute the Meditative Ritual (Tree -> Evaluate -> Gauge -> Ingest).
-*   **do_research [topic]:** Use `monk brave-search` (in parallel) to launch at least 3 distinct queries. You MUST unconditionally use `monk fetch-url` to ingest the full contents of at least the top 2 most relevant results. Never rely solely on search summaries.
+*   **do_research [topic]:** Use `monk brave-search` (in parallel) to launch at least 3 distinct queries. **You MUST unconditionally use `monk fetch-url` to extract the full contents of the most relevant search results. Never rely solely on search summaries.** Synthesize the deep findings.
 *   **update_docs:** Use `monk tree --json` to locate the root `README.md` and all co-located `.md` files. Read them via `monk catfiles`. Align them strictly with the current truth of the codebase. *Never create new markdown files unless explicitly ordered; only update existing ones.*
 *   **reflect:** Record wisdom gained during this session into the project history. 
     1. First, use `monk log changelog <type> <desc>` to record major milestones into `CHANGELOG.md`.
