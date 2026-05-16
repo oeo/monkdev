@@ -28,6 +28,11 @@ export default defineCommand({
       description: "Output only LOC and token estimates, not file content",
       default: false,
     },
+    out: {
+      type: "string",
+      description: "Optional file path to write the XML output to (prevents terminal truncation)",
+      required: false,
+    },
   },
   async run({ args }) {
     const targetDir = args.path || ".";
@@ -126,6 +131,11 @@ export default defineCommand({
     }
     output += `</context>`;
 
-    console.log(output);
+    if (args.out) {
+      await Bun.write(args.out, output);
+      console.log(`Context successfully written to ${args.out} (${totalFiles} files, ~${totalTokens} tokens).`);
+    } else {
+      console.log(output);
+    }
   },
 });

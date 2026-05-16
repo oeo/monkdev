@@ -67,7 +67,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
 
   const positionalArgs: string[] = [];
-  const flagArgs: string[] = ["--json"];
+  const flagArgs: string[] = [];
 
   if (args) {
     for (const [key, argDef] of Object.entries(tool.args || {})) {

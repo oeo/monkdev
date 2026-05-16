@@ -10,7 +10,7 @@ export default defineCommand({
     json: { type: "boolean", default: false },
   },
   run({ args }) {
-    const isJson = args.json || !process.stdout.isTTY;
+    const isJson = args.json;
     const data = tools
       .filter((t) => !["list", "describe"].includes(t.meta.name!))
       .map((t) => ({

@@ -228,7 +228,7 @@ When instructed to **meditate**, you must execute this ritual. The scope and dep
 1. **Map:** Use `monk tree [target]` to get a noise-free map of the architecture. If hunting a definition, use `monk symbol <name>`.
 2. **Evaluate:** Based on the requested depth, assign importance to the files.
 3. **Gauge (CRITICAL):** If you suspect a massive token load (especially during a *deep* meditation), you MUST run `monk catfiles --stats-only <files>` or `monk context --stats-only <dir>` first. Present the token estimate to the user and ask for confirmation.
-4. **Ingest:** Use `monk context <directory>` to ingest entire modules cohesively as structured XML. Use `monk catfiles <file1> <file2>` for surgical, isolated reading of disparate files.
+4. **Ingest (The Artifact Protocol):** Use `monk context <directory>` to ingest entire modules cohesively as structured XML. **CRITICAL:** If `monk context --stats-only` reveals a token load > 10,000, DO NOT output it directly to the terminal via MCP. You must use the `--out` flag to write it to your OS-level ephemeral session directory (e.g., `monk context <dir> --out /tmp/monk-xxx/context.xml`). Then use your native `Read` tool with offsets to safely parse the massive XML file. Use `monk catfiles <file1> <file2>` for surgical, isolated reading of disparate files.
 5. **Act:** Execute the "Measure, Prove, Cut" protocol.
 
 ## Explicit Command Directives

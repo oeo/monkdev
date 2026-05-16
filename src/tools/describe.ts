@@ -17,7 +17,7 @@ export default defineCommand({
       process.exit(1);
     }
 
-    const isJson = args.json || !process.stdout.isTTY;
+    const isJson = args.json;
     const info = {
       name: t.meta.name,
       description: t.meta.description,

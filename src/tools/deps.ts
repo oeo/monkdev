@@ -111,7 +111,7 @@ export default defineCommand({
       } catch (e) {}
     }
 
-    const isJson = args.json || !process.stdout.isTTY;
+    const isJson = args.json;
 
     if (isJson) {
       console.log(JSON.stringify(results, null, 2));

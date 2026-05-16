@@ -106,7 +106,7 @@ export default defineCommand({
     // Sort alphabetically for clean domain grouping
     results.sort((a, b) => a.path.localeCompare(b.path));
 
-    const isJson = args.json || !process.stdout.isTTY;
+    const isJson = args.json;
 
     if (isJson) {
       console.log(JSON.stringify(results, null, 2));

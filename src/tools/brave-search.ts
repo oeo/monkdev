@@ -59,7 +59,7 @@ export default defineCommand({
         description: r.description,
       })) ?? [];
 
-    const isJson = args.json || !process.stdout.isTTY;
+    const isJson = args.json;
 
     if (isJson) {
       console.log(JSON.stringify({ query: args.query, results }, null, 2));
