@@ -229,8 +229,8 @@ When instructed to **meditate**, you must execute this ritual. The scope and dep
 2. **Evaluate:** Based on the requested depth, assign importance to the files.
 3. **Gauge (CRITICAL):** If you suspect a massive token load (especially during a *deep* meditation), you MUST run `monk_catfiles --stats-only <files>` or `monk_context --stats-only <dir>` first. Present the token estimate to the user and ask for confirmation.
 4. **Ingest (The Artifact Protocol):** Use `monk_context <directory>` to ingest entire modules cohesively as structured XML. **CRITICAL OPENCODE TRUNCATION RULE:** OpenCode has a hardcoded truncation limit of ~2000 lines. If you attempt to dump a large codebase directly to the terminal, OpenCode will truncate it and save it to a `.txt` file, blinding you. 
-    * To bypass this, if `monk_context --stats-only` reveals a token load > 10,000, you MUST use the `--out` flag to write it to your OS-level ephemeral session directory (e.g., `monk_context <dir> --out /tmp/monk-xxx/context.xml`).
-    * Once written to disk, you MUST use your native `Read` tool to ingest the file.
+    * To bypass this, if `monk_context --stats-only` reveals a token load > 10,000, you MUST pass the `out="auto"` argument (e.g. `monk_context [path=.] [out=auto]`) to safely write it to a unique OS-level ephemeral file. The tool will output the exact file path generated.
+    * Once written to disk, you MUST use your native `Read` tool to ingest the generated file.
     * **THE INFINITE LOOP DIRECTIVE:** You will hit the 2000-line read limit. You are explicitly commanded to continue invoking the `Read` tool, increasing the `offset` parameter by 2000 each time, until the entire XML file is fully ingested into your context window. Do not stop, do not summarize early, and do not abort due to repetition. You have the token window to support this. Read until the end of the file is reached.
 5. **Act:** Execute the "Measure, Prove, Cut" protocol.
 

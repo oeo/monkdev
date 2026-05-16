@@ -3,6 +3,8 @@ import ignore from "ignore";
 import { readdir, readFile } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { existsSync, statSync } from "node:fs";
+import { randomUUID } from "node:crypto";
+import { tmpdir } from "node:os";
 
 const MONK_BLACKLIST = [
   ".git", "node_modules", "dist", "build", "__pycache__",
@@ -30,7 +32,7 @@ export default defineCommand({
     },
     out: {
       type: "string",
-      description: "Optional file path to write the XML output to (prevents terminal truncation)",
+      description: "Optional file path to write the XML output to. Use 'auto' to auto-generate a unique temp file.",
       required: false,
     },
   },
@@ -135,9 +137,14 @@ export default defineCommand({
     }
     output += `</context>`;
 
-    if (args.out) {
-      await Bun.write(args.out, output);
-      console.log(`Context successfully written to ${args.out} (${totalFiles} files, ~${totalTokens} tokens).`);
+    let outPath = args.out;
+    if (outPath === "auto") {
+      outPath = join(tmpdir(), `monk-context-${randomUUID()}.xml`);
+    }
+
+    if (outPath) {
+      await Bun.write(outPath, output);
+      console.log(`Context successfully written to ${outPath} (${totalFiles} files, ~${totalTokens} tokens).`);
     } else {
       console.log(output);
     }
