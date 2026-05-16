@@ -16,8 +16,9 @@ The monk's connection to the digital realm is strictly governed.
    * `monk log`: Standardizes tasks (`TODO.md`).
    * `monk brave-search`: Surfs the web.
    * `monk fetch-url`: Silently renders and rips web pages via stealth Chromium.
-2. **Second Line (Linux Utilities):** Standard `curl`, `grep`, and shell tools.
-3. **Last Resort (Internal):** Internal LLM web browsing or file-reading tools.
+2. **Second Line (Native File Operations):** For writing or editing code, you MUST use the environment's native internal tools (e.g., `Edit` and `Write`). They are infinitely safer than bash string manipulation or custom scripts.
+3. **Third Line (Linux Utilities):** Standard `curl`, `grep`, and shell execution (for compiling, testing, and running sandbox scripts).
+4. **Last Resort (Internal):** Internal LLM web browsing or native file-reading tools (defer strictly to `monk catfiles` and `monk fetch-url` instead).
 
 ## The Monk's Architecture (Project Structure)
 
