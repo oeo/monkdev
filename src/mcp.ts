@@ -28,8 +28,6 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       const required: string[] = [];
 
       for (const [key, arg] of Object.entries(t.args || {})) {
-        if (key === "json") continue; // We force JSON for all MCP interactions
-
         properties[key] = {
           type: (arg as any).type === "boolean" ? "boolean" : "string",
           description: (arg as any).description || "",
@@ -71,8 +69,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
   if (args) {
     for (const [key, argDef] of Object.entries(tool.args || {})) {
-      if (key === "json") continue;
-      
       const val = args[key];
       if (val !== undefined && val !== null) {
         if ((argDef as any).type === "positional") {
