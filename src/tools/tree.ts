@@ -14,6 +14,11 @@ const MONK_BLACKLIST = [
   "*.lock",
   "package-lock.json",
   ".cache",
+  "target",
+  ".next",
+  ".svelte-kit",
+  ".turbo",
+  ".vite"
 ];
 
 const MAX_FILE_SIZE = 500 * 1024; // 500KB
@@ -38,20 +43,11 @@ export default defineCommand({
   },
   async run({ args }) {
     const targetDir = args.path || ".";
-    const ig = ignore().add(MONK_BLACKLIST);
-
-    // Try to load .gitignore
-    try {
-      const gitignorePath = join(targetDir, ".gitignore");
-      const gitignoreContent = await readFile(gitignorePath, "utf8");
-      ig.add(gitignoreContent);
-    } catch (e) {
-      // It's okay if .gitignore doesn't exist
-    }
 
     const results: { loc: number; path: string }[] = [];
 
-    async function walk(dir: string) {
+    // Helper to walk directories recursively and inherit/extend ignore rules
+    async function walk(dir: string, parentIg: any) {
       let entries;
       try {
         entries = await readdir(dir, { withFileTypes: true });
@@ -59,17 +55,34 @@ export default defineCommand({
         return; // Ignore inaccessible directories
       }
 
+      // Clone the parent ignore instance to apply local rules without polluting the parent
+      // Note: ignore() doesn't have a deep clone, so we create a new one with same rules
+      // Wait, ignore instances are stateful but we can't easily clone.
+      // Actually, we can just track rules as an array of strings, or pass down an isolated instance.
+      // The cleanest way is to create a fresh ignore instance at each dir that combines parent rules + local rules.
+      
+      let currentIg = parentIg;
+      
+      try {
+        const gitignorePath = join(dir, ".gitignore");
+        const gitignoreContent = await readFile(gitignorePath, "utf8");
+        // Create a new isolated instance that includes parent rules + local rules
+        currentIg = ignore().add(parentIg).add(gitignoreContent);
+      } catch (e) {
+        // No local .gitignore, keep using parentIg
+      }
+
       for (const entry of entries) {
         const fullPath = join(dir, entry.name);
         const relPath = relative(targetDir, fullPath);
 
         // Filter via ignore package
-        if (ig.ignores(relPath) || ig.ignores(relPath + (entry.isDirectory() ? "/" : ""))) {
+        if (currentIg.ignores(relPath) || currentIg.ignores(relPath + (entry.isDirectory() ? "/" : ""))) {
           continue;
         }
 
         if (entry.isDirectory()) {
-          await walk(fullPath);
+          await walk(fullPath, currentIg);
         } else if (entry.isFile()) {
           const file = Bun.file(fullPath);
           const size = file.size;
@@ -108,7 +121,8 @@ export default defineCommand({
       }
     }
 
-    await walk(targetDir);
+    const rootIg = ignore().add(MONK_BLACKLIST);
+    await walk(targetDir, rootIg);
 
     // Sort alphabetically for clean domain grouping
     results.sort((a, b) => a.path.localeCompare(b.path));

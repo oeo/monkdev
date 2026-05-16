@@ -9,6 +9,7 @@ import { tmpdir } from "node:os";
 const MONK_BLACKLIST = [
   ".git", "node_modules", "dist", "build", "__pycache__",
   ".DS_Store", "coverage", "*.lock", "package-lock.json", ".cache",
+  "target", ".next", ".svelte-kit", ".turbo", ".vite"
 ];
 
 const MAX_FILE_SIZE = 500 * 1024; // 500KB
@@ -44,36 +45,35 @@ export default defineCommand({
       process.exit(1);
     }
 
-    const ig = ignore().add(MONK_BLACKLIST);
-
-    try {
-      const gitignorePath = join(targetDir, ".gitignore");
-      const gitignoreContent = await readFile(gitignorePath, "utf8");
-      ig.add(gitignoreContent);
-    } catch (e) {}
-
     let totalTokens = 0;
     let totalFiles = 0;
     const filesToPack: { path: string; text: string; loc: number }[] = [];
 
-    async function walk(dir: string) {
+    async function walk(dir: string, parentIg: any) {
       let entries;
       try {
         entries = await readdir(dir, { withFileTypes: true });
       } catch (e) {
         return;
       }
+      
+      let currentIg = parentIg;
+      try {
+        const gitignorePath = join(dir, ".gitignore");
+        const gitignoreContent = await readFile(gitignorePath, "utf8");
+        currentIg = ignore().add(parentIg).add(gitignoreContent);
+      } catch (e) {}
 
       for (const entry of entries) {
         const fullPath = join(dir, entry.name);
         const relPath = relative(targetDir, fullPath);
 
-        if (ig.ignores(relPath) || ig.ignores(relPath + (entry.isDirectory() ? "/" : ""))) {
+        if (currentIg.ignores(relPath) || currentIg.ignores(relPath + (entry.isDirectory() ? "/" : ""))) {
           continue;
         }
 
         if (entry.isDirectory()) {
-          await walk(fullPath);
+          await walk(fullPath, currentIg);
         } else if (entry.isFile()) {
           const file = Bun.file(fullPath);
           const size = file.size;
@@ -114,7 +114,8 @@ export default defineCommand({
       }
     }
 
-    await walk(targetDir);
+    const rootIg = ignore().add(MONK_BLACKLIST);
+    await walk(targetDir, rootIg);
 
     if (args["stats-only"]) {
       console.log(`Context Target: ${targetDir}`);
