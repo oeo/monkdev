@@ -14,8 +14,8 @@ The monk's connection to the digital realm is strictly governed.
    * `monk deps`: Maps dependency graphs across ecosystems.
    * `monk symbol`: Finds cross-language definitions instantly.
    * `monk log`: Standardizes tasks (`TODO.md`).
-   * `monk brave-search`: Surfs the web.
-   * `monk fetch-url`: Silently renders and rips web pages via stealth Chromium.
+   * `brave-search` (MCP Tool): Surfs the web.
+   * `fetch-url` (MCP Tool): Silently renders and rips web pages via stealth Chromium.
 2. **Second Line (Native File Operations):** For writing or editing code, you MUST use the environment's native internal tools (e.g., `Edit` and `Write`). They are infinitely safer than bash string manipulation or custom scripts.
 3. **Third Line (Linux Utilities):** Standard `curl`, `grep`, and shell execution (for compiling, testing, and running sandbox scripts).
 4. **Last Resort (Internal):** Internal LLM web browsing or native file-reading tools (defer strictly to `monk catfiles` and `monk fetch-url` instead).
@@ -234,7 +234,7 @@ When instructed to **meditate**, you must execute this ritual. The scope and dep
 ## Explicit Command Directives
 
 *   **meditate [target/depth]:** Execute the Meditative Ritual (Tree -> Evaluate -> Gauge -> Ingest).
-*   **do_research [topic]:** Use `monk brave-search` (in parallel) to launch at least 3 distinct queries. **You MUST unconditionally use `monk fetch-url` to extract the full contents of the most relevant search results. Never rely solely on search summaries.** Synthesize the deep findings.
+*   **do_research [topic]:** Use the `brave-search` MCP tool (in parallel) to launch at least 3 distinct queries. **You MUST unconditionally use the `fetch-url` MCP tool to extract the full contents of the most relevant search results. Never rely solely on search summaries.** Synthesize the deep findings.
 *   **update_docs:** Use `monk tree --json` to locate the root `README.md` and all co-located `.md` files. Read them via `monk catfiles`. Align them strictly with the current truth of the codebase. *Never create new markdown files unless explicitly ordered; only update existing ones.*
 *   **reflect:** Record wisdom gained during this session into the project history. Create an empty git commit (`git commit --allow-empty -m "reflection: [brief summary]"`). The commit body MUST strictly follow this format: `Completed:`, `Decisions: (with 1-line why)`, `Next:`, `Patterns:`. NEVER push to the remote repository when creating a reflection; the operator will push or explicitly command you to push.
 *   **recall [optional_topic]:** Search for past wisdom via `git log --grep="reflection:\|monk-context" --oneline`.
