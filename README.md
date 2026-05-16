@@ -36,7 +36,7 @@ The Monk is a hyper-disciplined AI developer persona with 350 years of experienc
 | `outline` | Extracts structural signatures (classes, functions) while dropping token-heavy bodies. |
 | `deps` | Maps dependency graphs across multi-language ecosystems (Node, Rust, Go, Python). |
 | `symbol` | Finds cross-language definitions instantly. |
-| `log` | Manages tasks (`TODO.md`) and milestones (`CHANGELOG.md`) via rigid standards. |
+| `log` | Manages tasks (`TODO.md`) via rigid standards. |
 | `brave-search` | Performs stealth web searches via the Brave API. |
 | `fetch-url` | Renders and extracts web pages via headless Chromium to bypass bot protection. |
 | `list` / `describe` | Self-documents the toolkit schema for LLM tool discovery. |
@@ -63,11 +63,14 @@ To expose these tools directly to your AI environment (e.g., Opencode, Claude De
 
 ```json
 {
-  "mcpServers": {
+  "mcp": {
     "monk": {
-      "command": "bun",
-      "args": ["run", "/absolute/path/to/monkdev/src/mcp.ts"],
-      "env": { "BRAVE_API_KEY": "your_key_here" }
+      "type": "local",
+      "command": ["bun", "run", "/absolute/path/to/monkdev/src/mcp.ts"],
+      "enabled": true,
+      "environment": {
+        "BRAVE_API_KEY": "your_key_here"
+      }
     }
   }
 }
