@@ -139,6 +139,9 @@ export default defineCommand({
     output += `</context>`;
 
     let outPath = args.out;
+    if (!outPath && totalTokens > 10000) {
+      outPath = "auto";
+    }
     if (outPath === "auto") {
       outPath = join(tmpdir(), `monk-context-${randomUUID()}.xml`);
     }
