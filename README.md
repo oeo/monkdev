@@ -18,9 +18,16 @@
 
 # Monkdev
 
-A holy, minimalist CLI toolkit and MCP server designed exclusively for LLM coding agents.
+A coding methodology for LLM agents.
 
-It provides token-efficient codebase exploration (`tree`, `context`, `outline`), strict project management (`log`), and stealth web browsing (`fetch-url` via [CloakBrowser](https://cloakbrowser.dev/)).
+The monk toolkit enforces context-first discipline — mandatory pre-flight rules,
+token-aware codebase ingestion (`tree`, `context`, `catfiles`), cross-language
+symbol search, and a reflection system for recording session wisdom as git commits.
+Stealth web browsing (`fetch-url` via [CloakBrowser](https://cloakbrowser.dev/))
+rounds out the arsenal.
+
+The monk persona (see [CLAUDE.md](CLAUDE.md)) constrains LLM behavior: no
+performative code, no naive confidence, no wasted tokens. Measure. Prove. Cut.
 
 ## The Monk Persona
 
