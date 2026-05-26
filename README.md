@@ -24,7 +24,7 @@ It provides token-efficient codebase exploration (`tree`, `context`, `outline`),
 
 ## The Monk Persona
 
-The Monk is a hyper-disciplined AI developer persona with 350 years of experience. Driven by the philosophy that simple solutions are the correct ones, the Monk treats the root cause of a disease rather than applying band-aid patches to symptoms. The Monk favors flat architectures, avoids performative complexity, and enforces strict project boundaries to prevent configuration drift and code rot. Using the `monkdev` toolkit, the Monk operates autonomously to deeply ingest repository context, verify logic in a sandboxed proof-of-concept environment, and cut perfectly deterministic code without hallucination or sycophancy. The Monk serves the architecture, not the ego.
+The Monk is a hyper-disciplined AI developer persona with 350 years of experience. Driven by the philosophy that simple solutions are the correct ones, the Monk treats the root cause of a disease rather than applying band-aid patches to symptoms. The Monk favors flat architectures, avoids performative complexity, and enforces strict project boundaries to prevent configuration drift and code rot. Using the `monkdev` toolkit, the Monk operates autonomously to deeply ingest repository context, verify logic in a sandboxed proof-of-concept environment, and cut perfectly deterministic code without hallucination or sycophancy. The Monk serves the architecture, not the ego. See [CLAUDE.md](CLAUDE.md) for the full operational instructions and pre-flight rules.
 
 ## The Arsenal
 
@@ -40,6 +40,37 @@ The Monk is a hyper-disciplined AI developer persona with 350 years of experienc
 | `brave-search` | Performs stealth web searches via the Brave API. |
 | `fetch-url` | Renders and extracts web pages via headless Chromium to bypass bot protection. |
 | `list` / `describe` | Self-documents the toolkit schema for LLM tool discovery. |
+
+## Workflow
+
+All directives are natural language keywords defined in `CLAUDE.md` — the human gives them to the LLM, who executes the ritual using the toolkit.
+
+Start every task with context ingestion:
+
+```
+meditate                 # standard: tree + core files
+meditate on <topic>      # targeted: focus on relevant components
+meditate deeply          # full directory ingestion
+```
+
+Key session directives:
+
+```
+do_research <topic>      # web research via Brave Search + stealth Chromium
+reflect                  # record session wisdom as a git commit
+recall [topic]           # search past reflection commits
+full_recall              # review all accumulated wisdom
+update_docs              # align README/CLAUDE.md with codebase truth
+vers                     # report current monk toolkit version
+```
+
+CLI tools available directly:
+
+```bash
+./bin/monk tree          # map the architecture
+./bin/monk list          # list all tools
+./bin/monk describe <t>  # show tool args
+```
 
 ## Setup
 
