@@ -1,4 +1,5 @@
 import { defineCommand } from "citty";
+import { resolve } from "node:path";
 import treeCmd from "./tree";
 
 export default defineCommand({
@@ -12,6 +13,11 @@ export default defineCommand({
       description: "The name of the symbol to find",
       required: true,
     },
+    path: {
+      type: "string",
+      description: "Directory to search (default: current working directory)",
+      default: ".",
+    },
     json: {
       type: "boolean",
       description: "Output JSON",
@@ -19,6 +25,8 @@ export default defineCommand({
     },
   },
   async run({ args, cmd, data }) {
+    const targetDir = resolve(args.path || ".");
+
     // 1. Get the flat list of files via the tree logic to respect gitignores and blacklists
     const consoleLog = console.log;
     const files: string[] = [];
@@ -27,11 +35,11 @@ export default defineCommand({
     console.log = (output) => {
       if (typeof output === "string" && output.startsWith("[")) {
         const parsed = JSON.parse(output);
-        parsed.forEach((p: any) => files.push(p.path));
+        parsed.forEach((p: any) => files.push(resolve(targetDir, p.path)));
       }
     };
     
-    await treeCmd.run({ args: { path: ".", json: true }, cmd, data });
+    await treeCmd.run({ args: { path: targetDir, json: true }, cmd, data });
     
     // Restore console.log
     console.log = consoleLog;

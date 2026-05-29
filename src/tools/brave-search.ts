@@ -28,8 +28,8 @@ export default defineCommand({
     // Fallback: If not in env, try to load it from the monkdev installation directory
     if (!key) {
       try {
-        // Hardcoding the known installation path for global reliability
-        const envContent = await Bun.file("/Users/taky/www/monk/.env").text();
+        const envPath = require("node:path").join(import.meta.dir, "../../.env");
+        const envContent = await Bun.file(envPath).text();
         const match = envContent.match(/BRAVE_API_KEY=(.*)/);
         if (match && match[1]) {
           key = match[1].trim();
@@ -38,7 +38,7 @@ export default defineCommand({
     }
 
     if (!key) {
-      console.error("Missing BRAVE_API_KEY in env or /Users/taky/www/monk/.env");
+      console.error("Missing BRAVE_API_KEY in env or .env file");
       process.exit(1);
       return;
     }

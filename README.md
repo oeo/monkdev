@@ -84,7 +84,11 @@ CLI tools available directly:
 ```bash
 bun install
 cp .env.example .env # Add your BRAVE_API_KEY
+ln -sf "$(pwd)/bin/monk" ~/.local/bin/monk # optional: put `monk` on your PATH
 ```
+
+> The first `fetch-url` call downloads a headless Chromium (~200MB) via
+> CloakBrowser. Expect a slow first invocation while it provisions.
 
 ## Usage
 
@@ -108,11 +112,16 @@ To expose these tools directly to your AI environment (e.g., Opencode, Claude De
       "enabled": true,
       "environment": {
         "BRAVE_API_KEY": "your_key_here"
-      }
+      },
+      "timeout": 60000
     }
   }
 }
 ```
+
+> Set `timeout` generously (60s shown). OpenCode defaults to 5s, which is too
+> short for the Chromium cold-start (`fetch-url`) or scanning large directories
+> (`tree`, `symbol`, `context`).
 
 ## Extending
 

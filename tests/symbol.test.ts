@@ -9,12 +9,12 @@ test("symbol locates definitions correctly", async () => {
   // Test 1: Rust struct
   const { stdout: out1 } = await $`./bin/monk symbol MyTargetStruct --json`.quiet();
   const res1 = JSON.parse(out1.toString());
-  expect(res1.some((r: any) => r.file === "test_struct.rs")).toBe(true);
+  expect(res1.some((r: any) => r.file.endsWith("test_struct.rs"))).toBe(true);
   
   // Test 2: TS function
   const { stdout: out2 } = await $`./bin/monk symbol MyTargetFunc --json`.quiet();
   const res2 = JSON.parse(out2.toString());
-  expect(res2.some((r: any) => r.file === "test_func.ts")).toBe(true);
+  expect(res2.some((r: any) => r.file.endsWith("test_func.ts"))).toBe(true);
   
   // Cleanup
   await $`rm test_struct.rs test_func.ts`;

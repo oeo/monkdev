@@ -9,7 +9,7 @@ afterEach(() => {
 test("brave-search exits if BRAVE_API_KEY is missing", async () => {
   // Mock Bun.file so it doesn't accidentally find the real .env file in the global fallback
   const originalBunFile = Bun.file;
-  Bun.file = () => { throw new Error("File not found") } as any;
+  Bun.file = (() => { throw new Error("File not found") }) as any;
 
   const originalEnv = process.env.BRAVE_API_KEY;
   delete process.env.BRAVE_API_KEY;
@@ -25,7 +25,7 @@ test("brave-search exits if BRAVE_API_KEY is missing", async () => {
     data: {},
   });
 
-  expect(errorSpy).toHaveBeenCalledWith("Missing BRAVE_API_KEY in env or /Users/taky/www/monk/.env");
+  expect(errorSpy).toHaveBeenCalledWith("Missing BRAVE_API_KEY in env or .env file");
   expect(exitSpy).toHaveBeenCalledWith(1);
 
   if (originalEnv) {
