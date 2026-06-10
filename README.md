@@ -37,7 +37,7 @@ The Monk is a hyper-disciplined AI developer persona with 350 years of experienc
 
 | Tool | Description |
 |---|---|
-| `tree` | Maps project architecture cleanly, respecting ignores and dropping binaries. |
+| `tree` | Maps project architecture cleanly, honoring recursive ignores and dropping binaries. |
 | `context` | Packs entire directories into XML-structured blocks for deep AI ingestion. |
 | `catfiles` | Safely reads isolated file contents with line-number headers. |
 | `outline` | Extracts structural signatures (classes, functions) while dropping token-heavy bodies. |
@@ -47,6 +47,17 @@ The Monk is a hyper-disciplined AI developer persona with 350 years of experienc
 | `brave-search` | Performs stealth web searches via the Brave API. |
 | `fetch-url` | Renders and extracts web pages via headless Chromium to bypass bot protection. |
 | `list` / `describe` | Self-documents the toolkit schema for LLM tool discovery. |
+
+## Ignore Rules
+
+`tree` and `context` walk recursively, reading `.gitignore` at every directory
+level (rules inherit downward and resolve relative to their own directory).
+
+A `.monkignore` file (same syntax, also recursive) marks paths the monk should
+not ingest during general meditation. Such paths are **dropped from `context`**
+but still **listed by `tree`** with a `(monk-omit)` tag. This keeps broad
+meditation focused while letting the monk target a fogged folder explicitly
+(e.g. `monk context vendor`).
 
 ## Workflow
 

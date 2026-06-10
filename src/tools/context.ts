@@ -1,18 +1,9 @@
 import { defineCommand } from "citty";
-import ignore from "ignore";
-import { readdir, readFile } from "node:fs/promises";
-import { join, relative } from "node:path";
 import { existsSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
-
-const MONK_BLACKLIST = [
-  ".git", "node_modules", "dist", "build", "__pycache__",
-  ".DS_Store", "coverage", "*.lock", "package-lock.json", ".cache",
-  "target", ".next", ".svelte-kit", ".turbo", ".vite"
-];
-
-const MAX_FILE_SIZE = 500 * 1024; // 500KB
+import { collectFiles } from "../lib/walk";
 
 export default defineCommand({
   meta: {
@@ -39,101 +30,30 @@ export default defineCommand({
   },
   async run({ args }) {
     const targetDir = args.path || ".";
-    
+
     if (!existsSync(targetDir) || !statSync(targetDir).isDirectory()) {
       console.error(`Directory not found: ${targetDir}`);
       process.exit(1);
     }
 
-    let totalTokens = 0;
-    let totalFiles = 0;
-    const filesToPack: { path: string; text: string; loc: number }[] = [];
-
-    async function walk(dir: string, parentIg: any) {
-      let entries;
-      try {
-        entries = await readdir(dir, { withFileTypes: true });
-      } catch (e) {
-        return;
-      }
-      
-      let currentIg = parentIg;
-      try {
-        const gitignorePath = join(dir, ".gitignore");
-        const gitignoreContent = await readFile(gitignorePath, "utf8");
-        currentIg = ignore().add(parentIg).add(gitignoreContent);
-      } catch (e) {}
-
-      for (const entry of entries) {
-        const fullPath = join(dir, entry.name);
-        const relPath = relative(targetDir, fullPath);
-
-        if (currentIg.ignores(relPath) || currentIg.ignores(relPath + (entry.isDirectory() ? "/" : ""))) {
-          continue;
-        }
-
-        if (entry.isDirectory()) {
-          await walk(fullPath, currentIg);
-        } else if (entry.isFile()) {
-          const file = Bun.file(fullPath);
-          const size = file.size;
-
-          if (size > MAX_FILE_SIZE) continue;
-
-          let isBinary = false;
-          try {
-            const slice = file.slice(0, 4096);
-            const buffer = new Uint8Array(await slice.arrayBuffer());
-            for (let i = 0; i < buffer.length; i++) {
-              if (buffer[i] === 0) {
-                isBinary = true;
-                break;
-              }
-            }
-          } catch (e) {
-            continue;
-          }
-
-          if (isBinary) continue;
-
-          try {
-            const text = await file.text();
-            const loc = text.split("\n").length;
-            const approxTokens = Math.ceil(size / 4);
-
-            totalTokens += approxTokens;
-            totalFiles++;
-
-            if (!args["stats-only"]) {
-              filesToPack.push({ path: relPath, text, loc });
-            }
-          } catch (e) {
-            // Ignore unreadable files
-          }
-        }
-      }
-    }
-
-    const rootIg = ignore().add(MONK_BLACKLIST);
-    await walk(targetDir, rootIg);
+    // .monkignore entries fog general meditation; drop them from context.
+    const files = (await collectFiles(targetDir)).filter((f) => !f.monkIgnored);
+    const totalTokens = files.reduce((sum, f) => sum + Math.ceil(f.bytes / 4), 0);
 
     if (args["stats-only"]) {
       console.log(`Context Target: ${targetDir}`);
-      console.log(`Files to pack: ${totalFiles}`);
+      console.log(`Files to pack: ${files.length}`);
       console.log(`Estimated Tokens: ~${totalTokens}`);
       return;
     }
 
-    if (filesToPack.length === 0) {
+    if (files.length === 0) {
       console.log("No text files found to pack.");
       return;
     }
 
-    // Sort alphabetically for consistency
-    filesToPack.sort((a, b) => a.path.localeCompare(b.path));
-
     let output = `<context directory="${targetDir}">\n`;
-    for (const f of filesToPack) {
+    for (const f of files) {
       output += `  <file path="${f.path}">\n${f.text}\n  </file>\n`;
     }
     output += `</context>`;
@@ -148,7 +68,7 @@ export default defineCommand({
 
     if (outPath) {
       await Bun.write(outPath, output);
-      console.log(`Context successfully written to ${outPath} (${totalFiles} files, ~${totalTokens} tokens).`);
+      console.log(`Context successfully written to ${outPath} (${files.length} files, ~${totalTokens} tokens).`);
     } else {
       console.log(output);
     }
