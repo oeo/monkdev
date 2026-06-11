@@ -91,16 +91,16 @@ CLI tools available directly:
 ./bin/monk describe <t>  # show tool args
 ```
 
-## Setup
+## Install
 
-```bash
-bun install
-cp .env.example .env # Add your BRAVE_API_KEY
-ln -sf "$(pwd)/bin/monk" ~/.local/bin/monk # optional: put `monk` on your PATH
-```
+Tell Claude Code or OpenCode:
 
-> The first `fetch-url` call downloads a headless Chromium (~200MB) via
-> CloakBrowser. Expect a slow first invocation while it provisions.
+> install or upgrade the monkdev tools: https://github.com/oeo/monkdev
+
+The agent reads [install.md](install.md) and follows it — registering the MCP
+server (the tools) **and** appending the monk directives (the behavior) to your
+global system prompt, asking before it overwrites anything. The same line
+upgrades an existing install.
 
 ## Usage
 
@@ -113,7 +113,16 @@ All capabilities are self-documenting. Use the CLI to explore the available tool
 
 ## MCP Server Integration
 
-To expose these tools directly to your AI environment (e.g., Opencode, Claude Desktop), add this to your MCP configuration:
+[install.md](install.md) covers this end to end. To wire it up by hand, point
+your client at `src/mcp.ts`.
+
+**Claude Code** (one command, agent-friendly):
+
+```bash
+claude mcp add monk -s user -- bun /absolute/path/to/monkdev/src/mcp.ts
+```
+
+**OpenCode / Claude Desktop** — add this to your MCP configuration:
 
 ```json
 {
