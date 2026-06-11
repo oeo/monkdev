@@ -1,5 +1,6 @@
 import braveSearch from "./brave-search";
 import fetchUrl from "./fetch-url";
+import screenshot from "./screenshot-url";
 import list from "./list";
 import describe from "./describe";
 import catfiles from "./catfiles";
@@ -10,4 +11,4 @@ import context from "./context";
 import deps from "./deps";
 import outline from "./outline";
 
-export const tools = [braveSearch, fetchUrl, list, describe, catfiles, tree, symbol, log, context, deps, outline];
+export const tools = [braveSearch, fetchUrl, screenshot, list, describe, catfiles, tree, symbol, log, context, deps, outline];

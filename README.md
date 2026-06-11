@@ -46,6 +46,7 @@ The Monk is a hyper-disciplined AI developer persona with 350 years of experienc
 | `log` | Manages tasks (`TODO.md`) via rigid standards. |
 | `brave-search` | Performs stealth web searches via the Brave API. |
 | `fetch-url` | Renders and extracts web pages via headless Chromium to bypass bot protection. |
+| `screenshot-url` | Captures a PNG of a rendered page via stealth Chromium for visual verification. |
 | `list` / `describe` | Self-documents the toolkit schema for LLM tool discovery. |
 
 ## Ignore Rules

@@ -95,6 +95,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       };
     }
 
+    if (name === "screenshot-url" && !args?.out) {
+      return {
+        content: [
+          { type: "image", data: stdout.toString().trim(), mimeType: "image/png" },
+        ],
+      };
+    }
+
     return {
       content: [{ type: "text", text: stdout.toString() }],
     };
