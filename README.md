@@ -18,20 +18,71 @@
 
 # Monkdev
 
-A coding methodology for LLM agents.
+> A coding methodology for LLM agents. Measure. Prove. Cut.
 
-The monk toolkit enforces context-first discipline — mandatory pre-flight rules,
-token-aware codebase ingestion (`tree`, `context`, `catfiles`), cross-language
-symbol search, and a reflection system for recording session wisdom as git commits.
-Stealth web browsing (`fetch-url` via [CloakBrowser](https://cloakbrowser.dev/))
-rounds out the arsenal.
+Monkdev is a toolkit plus a persona. The **toolkit** (an MCP server) gives your
+agent token-aware codebase ingestion, cross-language symbol search, dependency
+mapping, and stealth web browsing. The **persona** ([CLAUDE.md](CLAUDE.md))
+constrains behavior: simple over clever, root-cause fixes over band-aids, no
+performative code, no wasted tokens. The monk serves the architecture, not the ego.
 
-The monk persona (see [CLAUDE.md](CLAUDE.md)) constrains LLM behavior: no
-performative code, no naive confidence, no wasted tokens. Measure. Prove. Cut.
+## Installation
 
-## The Monk Persona
+**Tell Claude Code or OpenCode:**
 
-The Monk is a hyper-disciplined AI developer persona with 350 years of experience. Driven by the philosophy that simple solutions are the correct ones, the Monk treats the root cause of a disease rather than applying band-aid patches to symptoms. The Monk favors flat architectures, avoids performative complexity, and enforces strict project boundaries to prevent configuration drift and code rot. Using the `monkdev` toolkit, the Monk operates autonomously to deeply ingest repository context, verify logic in a sandboxed proof-of-concept environment, and cut perfectly deterministic code without hallucination or sycophancy. The Monk serves the architecture, not the ego. See [CLAUDE.md](CLAUDE.md) for the full operational instructions and pre-flight rules.
+> install or upgrade the monkdev tools: https://github.com/oeo/monkdev
+
+That's it. Your agent follows the runbook below — registering the MCP server
+(the tools) and installing the monk directives (the behavior) into your global
+system prompt, asking before it overwrites anything. The same line upgrades an
+existing install.
+
+> The runbook runs commands on your machine and edits your global agent prompt.
+> Skim it before turning your agent loose.
+
+<details>
+<summary><b>The runbook your agent follows</b></summary>
+
+You are an AI agent (Claude Code, OpenCode, or similar) installing or upgrading
+monk for your operator. Carry this out adapting to **your** environment — you
+know your config layout better than any script. A full install is two parts: the
+**MCP server** (tools) and the **monk directives** (behavior). Never overwrite
+the operator's files without asking.
+
+**1. Get the code**
+- Fresh: `git clone https://github.com/oeo/monkdev.git && cd monkdev`
+- Upgrade: `git pull` in the existing checkout.
+- `bun install` (Bun required — https://bun.sh).
+
+**2. Register the MCP server** — entrypoint `src/mcp.ts`, run with `bun`. Use an
+absolute path and a generous (~60s) timeout for the Chromium cold-start.
+- Claude Code: `claude mcp add monk -s user -- bun "$(pwd)/src/mcp.ts"`
+- OpenCode / Claude Desktop — add to your MCP config:
+  ```json
+  "monk": { "type": "local", "command": ["bun", "<abs>/src/mcp.ts"], "timeout": 60000 }
+  ```
+
+**3. Install the monk directives** — the directives are this repo's
+[`CLAUDE.md`](CLAUDE.md); they belong in the operator's **global** prompt so the
+discipline applies everywhere (`~/.claude/CLAUDE.md` for Claude Code; the global
+instructions file for OpenCode). Wrap them in markers so upgrades replace cleanly:
+  ```
+  <!-- BEGIN MONK DIRECTIVES -->
+  ...contents of CLAUDE.md...
+  <!-- END MONK DIRECTIVES -->
+  ```
+  - No global file → create it with the marked block.
+  - File exists, no markers → **ask the operator**: replace the whole file, or
+    append the block? Don't choose for them.
+  - Markers already present → upgrade: replace only the content between them.
+
+**4. Configure & verify**
+- Optional: `brave-search` needs `BRAVE_API_KEY` in `.env` (copy `.env.example`);
+  every other tool works without a key.
+- First `screenshot-url` / `fetch-url` call downloads a headless Chromium (~200MB).
+- Restart the agent session, then verify the `monk_tree` tool responds.
+
+</details>
 
 ## The Arsenal
 
@@ -49,6 +100,30 @@ The Monk is a hyper-disciplined AI developer persona with 350 years of experienc
 | `screenshot-url` | Captures a PNG of a rendered page via stealth Chromium for visual verification. |
 | `list` / `describe` | Self-documents the toolkit schema for LLM tool discovery. |
 
+## Usage
+
+The tools are self-documenting from the CLI:
+
+```bash
+./bin/monk list             # list all tools
+./bin/monk describe <tool>  # show a tool's args
+./bin/monk tree             # map the architecture
+```
+
+## Directives
+
+Natural-language keywords (defined in [CLAUDE.md](CLAUDE.md)) the operator gives
+the agent; the agent executes the ritual with the toolkit.
+
+```
+meditate [on <topic>|deeply]   # ingest context before acting
+do_research <topic>            # web research via Brave + stealth Chromium
+reflect                        # record session wisdom as a git commit
+recall [topic] / full_recall   # search past reflections
+update_docs                    # align README/CLAUDE.md with code truth
+vers                           # report toolkit version
+```
+
 ## Ignore Rules
 
 `tree` and `context` walk recursively, reading `.gitignore` at every directory
@@ -60,93 +135,9 @@ but still **listed by `tree`** with a `(monk-omit)` tag. This keeps broad
 meditation focused while letting the monk target a fogged folder explicitly
 (e.g. `monk context vendor`).
 
-## Workflow
-
-All directives are natural language keywords defined in `CLAUDE.md` — the human gives them to the LLM, who executes the ritual using the toolkit.
-
-Start every task with context ingestion:
-
-```
-meditate                 # standard: tree + core files
-meditate on <topic>      # targeted: focus on relevant components
-meditate deeply          # full directory ingestion
-```
-
-Key session directives:
-
-```
-do_research <topic>      # web research via Brave Search + stealth Chromium
-reflect                  # record session wisdom as a git commit
-recall [topic]           # search past reflection commits
-full_recall              # review all accumulated wisdom
-update_docs              # align README/CLAUDE.md with codebase truth
-vers                     # report current monk toolkit version
-```
-
-CLI tools available directly:
-
-```bash
-./bin/monk tree          # map the architecture
-./bin/monk list          # list all tools
-./bin/monk describe <t>  # show tool args
-```
-
-## Install
-
-Tell Claude Code or OpenCode:
-
-> install or upgrade the monkdev tools: https://github.com/oeo/monkdev
-
-The agent reads [install.md](install.md) and follows it — registering the MCP
-server (the tools) **and** appending the monk directives (the behavior) to your
-global system prompt, asking before it overwrites anything. The same line
-upgrades an existing install.
-
-## Usage
-
-All capabilities are self-documenting. Use the CLI to explore the available tools:
-
-```bash
-./bin/monk list
-./bin/monk describe <tool_name>
-```
-
-## MCP Server Integration
-
-[install.md](install.md) covers this end to end. To wire it up by hand, point
-your client at `src/mcp.ts`.
-
-**Claude Code** (one command, agent-friendly):
-
-```bash
-claude mcp add monk -s user -- bun /absolute/path/to/monkdev/src/mcp.ts
-```
-
-**OpenCode / Claude Desktop** — add this to your MCP configuration:
-
-```json
-{
-  "mcp": {
-    "monk": {
-      "type": "local",
-      "command": ["bun", "run", "/absolute/path/to/monkdev/src/mcp.ts"],
-      "enabled": true,
-      "environment": {
-        "BRAVE_API_KEY": "your_key_here"
-      },
-      "timeout": 60000
-    }
-  }
-}
-```
-
-> Set `timeout` generously (60s shown). OpenCode defaults to 5s, which is too
-> short for the Chromium cold-start (`fetch-url`) or scanning large directories
-> (`tree`, `symbol`, `context`).
-
 ## Extending
 
 Tools are built using `citty`. To add a new tool:
 1. Create the command in `src/tools/`.
 2. Export it in `src/tools/index.ts`.
-3. Write an integration test in `tests/` (enforced by CI).
+3. Write an integration test in `tests/` (enforced by `conventions.test.ts`).
