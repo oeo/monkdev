@@ -112,17 +112,25 @@ The tools are self-documenting from the CLI:
 
 ## Directives
 
-Natural-language keywords (defined in [CLAUDE.md](CLAUDE.md)) the operator gives
-the agent; the agent executes the ritual with the toolkit.
+Directives are the monk's verbs — natural-language keywords the operator types to
+drive the workflow. The agent recognizes each and runs the matching ritual with
+the toolkit. Use them to scaffold your own sessions.
 
-```
-meditate [on <topic>|deeply]   # ingest context before acting
-do_research <topic>            # web research via Brave + stealth Chromium
-reflect                        # record session wisdom as a git commit
-recall [topic] / full_recall   # search past reflections
-update_docs                    # align README/CLAUDE.md with code truth
-vers                           # report toolkit version
-```
+| Directive | What it does |
+|---|---|
+| `meditate` | Ingest context before acting — `tree` to map, then read the core files. |
+| `meditate on <topic>` | Targeted ingestion: focus only on components relevant to the topic. |
+| `meditate deeply` | Holistic ingestion: pack whole directories via `context`, dependencies included. |
+| `do_research <topic>` | Parallel Brave searches + stealth-Chromium page reads, then synthesize. |
+| `reflect` | Record session wisdom as a git commit (`Completed` / `Decisions` / `Next` / `Patterns`). |
+| `recall [topic]` | Search past reflection commits for prior wisdom on a topic. |
+| `full_recall` | Review all accumulated reflections at once. |
+| `update_docs` | Align the README and co-located docs with the current code truth. |
+| `vers` | Report the installed monk toolkit version. |
+
+The full ritual semantics (meditation depths, the Measure–Prove–Cut protocol,
+commit formats) live in [CLAUDE.md](CLAUDE.md) under *Explicit Command
+Directives* — the agent reads them from your global prompt after install.
 
 ## Ignore Rules
 
