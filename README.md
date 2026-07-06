@@ -28,26 +28,24 @@ performative code, no wasted tokens. The monk serves the architecture, not the e
 
 ## Installation
 
-**Tell Claude Code or OpenCode:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/oeo/monkdev/master/scripts/install.sh | bash
+```
 
-> install or upgrade the monkdev tools: https://github.com/oeo/monkdev
+One line installs or upgrades everything: clones to `~/.monkdev` (override with
+`MONK_DIR`), runs `bun install`, registers the MCP server with Claude Code, and
+merges the monk directives into `~/.claude/CLAUDE.md` between markers — never
+touching your own content outside them. Re-run the same line to upgrade.
+Requires [Bun](https://bun.sh) and git.
 
-That's it. Your agent follows the runbook below — registering the MCP server
-(the tools) and installing the monk directives (the behavior) into your global
-system prompt, asking before it overwrites anything. The same line upgrades an
-existing install.
-
-> The runbook runs commands on your machine and edits your global agent prompt.
-> Skim it before turning your agent loose.
+> The script edits your global agent prompt. Skim
+> [`scripts/install.sh`](scripts/install.sh) before piping it to bash.
 
 <details>
-<summary><b>The runbook your agent follows</b></summary>
+<summary><b>Manual install (OpenCode, Claude Desktop, or no curl-pipe)</b></summary>
 
-You are an AI agent (Claude Code, OpenCode, or similar) installing or upgrading
-monk for your operator. Carry this out adapting to **your** environment — you
-know your config layout better than any script. A full install is two parts: the
-**MCP server** (tools) and the **monk directives** (behavior). Never overwrite
-the operator's files without asking.
+A full install is two parts: the **MCP server** (tools) and the **monk
+directives** (behavior).
 
 **1. Get the code**
 - Fresh: `git clone https://github.com/oeo/monkdev.git && cd monkdev`
@@ -63,7 +61,7 @@ absolute path and a generous (~60s) timeout for the Chromium cold-start.
   ```
 
 **3. Install the monk directives** — the directives are this repo's
-[`CLAUDE.md`](CLAUDE.md); they belong in the operator's **global** prompt so the
+[`CLAUDE.md`](CLAUDE.md); they belong in your **global** prompt so the
 discipline applies everywhere (`~/.claude/CLAUDE.md` for Claude Code; the global
 instructions file for OpenCode). Wrap them in markers so upgrades replace cleanly:
   ```
@@ -71,10 +69,6 @@ instructions file for OpenCode). Wrap them in markers so upgrades replace cleanl
   ...contents of CLAUDE.md...
   <!-- END MONK DIRECTIVES -->
   ```
-  - No global file → create it with the marked block.
-  - File exists, no markers → **ask the operator**: replace the whole file, or
-    append the block? Don't choose for them.
-  - Markers already present → upgrade: replace only the content between them.
 
 **4. Configure & verify**
 - Optional: `brave-search` needs `BRAVE_API_KEY` in `.env` (copy `.env.example`);
@@ -89,7 +83,7 @@ instructions file for OpenCode). Wrap them in markers so upgrades replace cleanl
 | Tool | Description |
 |---|---|
 | `tree` | Maps project architecture cleanly, ranked by heuristic importance, honoring recursive ignores and dropping binaries. |
-| `context` | Packs entire directories into XML-structured blocks for deep AI ingestion. |
+| `context` | Packs entire directories into XML-structured blocks for deep AI ingestion. Pipes files through [rtk](https://www.rtk-ai.app/) `read -l minimal` when installed (`--raw` to skip). |
 | `catfiles` | Safely reads isolated file contents with line-number headers. |
 | `outline` | Extracts structural signatures (classes, functions) while dropping token-heavy bodies. |
 | `deps` | Maps dependency graphs across multi-language ecosystems (Node, Rust, Go, Python). |
