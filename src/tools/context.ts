@@ -1,4 +1,5 @@
 import { defineCommand } from "citty";
+import { $ } from "bun";
 import { existsSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
@@ -32,6 +33,11 @@ export default defineCommand({
       description: "Only pack files with importance score >= this (1-10)",
       required: false,
     },
+    raw: {
+      type: "boolean",
+      description: "Skip the rtk minimal filter even when rtk is installed",
+      default: false,
+    },
   },
   async run({ args }) {
     const targetDir = args.path || ".";
@@ -44,12 +50,22 @@ export default defineCommand({
     // .monkignore entries fog general meditation; drop them from context.
     const min = args.min ? Number(args.min) : 0;
     const files = (await collectFiles(targetDir)).filter((f) => !f.monkIgnored && f.score >= min);
-    const totalTokens = files.reduce((sum, f) => sum + Math.ceil(f.bytes / 4), 0);
+
+    // rtk (Rust Token Killer) strips comments and collapses blanks; a failed
+    // filter falls back to the raw text so meditation never goes blind.
+    const rtk = args.raw ? null : Bun.which("rtk");
+    if (rtk) {
+      for (const f of files) {
+        const proc = await $`${rtk} read -l minimal ${join(targetDir, f.path)}`.quiet().nothrow();
+        if (proc.exitCode === 0) f.text = proc.stdout.toString();
+      }
+    }
+    const totalTokens = files.reduce((sum, f) => sum + Math.ceil(f.text.length / 4), 0);
 
     if (args["stats-only"]) {
       console.log(`Context Target: ${targetDir}`);
       console.log(`Files to pack: ${files.length}`);
-      console.log(`Estimated Tokens: ~${totalTokens}`);
+      console.log(`Estimated Tokens: ~${totalTokens}${rtk ? " (rtk minimal filter active)" : ""}`);
       return;
     }
 
@@ -58,7 +74,7 @@ export default defineCommand({
       return;
     }
 
-    let output = `<context directory="${targetDir}">\n`;
+    let output = `<context directory="${targetDir}"${rtk ? ' filter="rtk-minimal"' : ""}>\n`;
     for (const f of files) {
       output += `  <file path="${f.path}">\n${f.text}\n  </file>\n`;
     }
