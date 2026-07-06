@@ -1,6 +1,7 @@
 import ignore from "ignore";
 import { readdir, readFile } from "node:fs/promises";
 import { join, relative } from "node:path";
+import { scoreFile } from "./score";
 
 export const MONK_BLACKLIST = [
   ".git",
@@ -27,6 +28,7 @@ export interface WalkEntry {
   loc: number;
   bytes: number;
   text: string;
+  score: number; // heuristic importance, higher = more important
   monkIgnored: boolean; // matched a .monkignore rule: visible in tree, omitted from context
 }
 
@@ -105,11 +107,14 @@ export async function collectFiles(targetDir: string): Promise<WalkEntry[]> {
       try {
         if (await isBinary(file)) continue;
         const text = await file.text();
+        const path = relative(targetDir, fullPath);
+        const loc = text.split("\n").length;
         out.push({
-          path: relative(targetDir, fullPath),
-          loc: text.split("\n").length,
+          path,
+          loc,
           bytes: file.size,
           text,
+          score: scoreFile(path, loc),
           monkIgnored,
         });
       } catch {
@@ -119,6 +124,6 @@ export async function collectFiles(targetDir: string): Promise<WalkEntry[]> {
   }
 
   await walk(targetDir, [blacklist], [], false);
-  out.sort((a, b) => a.path.localeCompare(b.path));
+  out.sort((a, b) => b.score - a.score || a.path.localeCompare(b.path));
   return out;
 }

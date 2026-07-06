@@ -88,7 +88,7 @@ instructions file for OpenCode). Wrap them in markers so upgrades replace cleanl
 
 | Tool | Description |
 |---|---|
-| `tree` | Maps project architecture cleanly, honoring recursive ignores and dropping binaries. |
+| `tree` | Maps project architecture cleanly, ranked by heuristic importance, honoring recursive ignores and dropping binaries. |
 | `context` | Packs entire directories into XML-structured blocks for deep AI ingestion. |
 | `catfiles` | Safely reads isolated file contents with line-number headers. |
 | `outline` | Extracts structural signatures (classes, functions) while dropping token-heavy bodies. |

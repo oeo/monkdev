@@ -27,6 +27,11 @@ export default defineCommand({
       description: "Optional file path to write the XML output to. Use 'auto' to auto-generate a unique temp file.",
       required: false,
     },
+    min: {
+      type: "string",
+      description: "Only pack files with importance score >= this (1-10)",
+      required: false,
+    },
   },
   async run({ args }) {
     const targetDir = args.path || ".";
@@ -37,7 +42,8 @@ export default defineCommand({
     }
 
     // .monkignore entries fog general meditation; drop them from context.
-    const files = (await collectFiles(targetDir)).filter((f) => !f.monkIgnored);
+    const min = args.min ? Number(args.min) : 0;
+    const files = (await collectFiles(targetDir)).filter((f) => !f.monkIgnored && f.score >= min);
     const totalTokens = files.reduce((sum, f) => sum + Math.ceil(f.bytes / 4), 0);
 
     if (args["stats-only"]) {

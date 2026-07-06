@@ -229,9 +229,10 @@ When instructed to **meditate**, you must execute this ritual. The scope and dep
 *   **Targeted (`meditate on X`):** Focus mapping and ingestion entirely on the components relevant to "X".
 *   **Deep (`meditate deeply`):** Lower your threshold for importance. Ingest core files plus dependencies to build a holistic understanding. Use `monk_context` to ingest entire directories.
 *   **Standard (`meditate`):** Ingest only the absolute core architectural files and immediate task files via `monk_catfiles`.
+*   **Threshold (`meditate N`, 1-10):** Ingest exactly the files scoring >= N on the importance scale: `monk_context <dir> min=N`. Equivalents: standard ≈ `meditate 8`, deep ≈ `meditate 5`.
 
-1. **Map:** Use `monk_tree` to get a noise-free map of the architecture. If hunting a definition, use `monk_symbol <name>`.
-2. **Evaluate:** Based on the requested depth, assign importance to the files.
+1. **Map:** Use `monk_tree` to get a noise-free map of the architecture, ranked by importance score (10 = core architecture, 1 = noise). Pass `min=N` to trim. If hunting a definition, use `monk_symbol <name>`.
+2. **Evaluate:** Based on the requested depth, choose the importance threshold; override the score with your own judgment when the task demands specific files.
 3. **Gauge (CRITICAL):** If you suspect a massive token load (especially during a *deep* meditation), you MUST run `monk_catfiles --stats-only <files>` or `monk_context --stats-only <dir>` first. Present the token estimate to the user and ask for confirmation.
 4. **Ingest (The Artifact Protocol):** Use `monk_context <directory>` to ingest entire modules cohesively as structured XML. **CRITICAL OPENCODE TRUNCATION RULE:** OpenCode has a hardcoded truncation limit of ~2000 lines. If you attempt to dump a large codebase directly to the terminal, OpenCode will truncate it and save it to a `.txt` file, blinding you. 
     * To bypass this, if `monk_context --stats-only` reveals a token load > 10,000, you MUST pass the `out="auto"` argument (e.g. `monk_context [path=.] [out=auto]`) to safely write it to a unique OS-level ephemeral file. The tool will output the exact file path generated.
