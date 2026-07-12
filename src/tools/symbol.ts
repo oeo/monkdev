@@ -35,7 +35,7 @@ export default defineCommand({
 
     const results: { file: string; line: number; content: string }[] = [];
 
-    for (const f of await collectFiles(targetDir)) {
+    for (const f of (await collectFiles(targetDir)).files) {
       const lines = f.text.split("\n");
       for (let i = 0; i < lines.length; i++) {
         if (pattern.test(lines[i])) {

@@ -1,5 +1,5 @@
 import { defineCommand } from "citty";
-import { collectFiles } from "../lib/walk";
+import { collectFiles, estimateTokens, packFiles } from "../lib/walk";
 
 export default defineCommand({
   meta: {
@@ -23,18 +23,36 @@ export default defineCommand({
       description: "Only show files with importance score >= this (1-10)",
       required: false,
     },
+    "max-tokens": {
+      type: "string",
+      description: "Keep only the top-scored files fitting ~N tokens",
+      required: false,
+    },
   },
   async run({ args }) {
     const targetDir = args.path || ".";
-    const min = args.min ? Number(args.min) : 0;
-    const files = (await collectFiles(targetDir)).filter((f) => f.score >= min);
+    const { files: all, oversized } = await collectFiles(targetDir);
 
-    const tokens = (f: { text: string }) => Math.ceil(f.text.length / 4);
+    const min = args.min ? Number(args.min) : 0;
+    let files = all.filter((f) => f.score >= min);
+
+    const budget = args["max-tokens"] ? Number(args["max-tokens"]) : 0;
+    let excluded = 0;
+    if (budget > 0) {
+      const pack = packFiles(files, budget);
+      files = pack.packed;
+      excluded = pack.excluded;
+    }
+
+    const oversizedWarning = oversized.length
+      ? `warning: ${oversized.length} files >500KB skipped (largest: ${oversized[0].path} ${(oversized[0].bytes / 1024 / 1024).toFixed(1)}MB)`
+      : "";
 
     if (args.json) {
+      if (oversizedWarning) console.error(oversizedWarning);
       console.log(
         JSON.stringify(
-          files.map((f) => ({ score: f.score, loc: f.loc, tokens: tokens(f), path: f.path, monkOmit: f.monkIgnored })),
+          files.map((f) => ({ score: f.score, loc: f.loc, tokens: estimateTokens(f.text), path: f.path, monkOmit: f.monkIgnored })),
           null,
           2,
         ),
@@ -46,9 +64,24 @@ export default defineCommand({
     console.log("-------------------------------------------");
     for (const f of files) {
       const tag = f.monkIgnored ? "  (monk-omit)" : "";
-      console.log(`${String(f.score).padEnd(5)} | ${String(f.loc).padEnd(5)} | ${String(tokens(f)).padEnd(5)} | ${f.path}${tag}`);
+      console.log(`${String(f.score).padEnd(5)} | ${String(f.loc).padEnd(5)} | ${String(estimateTokens(f.text)).padEnd(5)} | ${f.path}${tag}`);
     }
-    const total = files.reduce((sum, f) => sum + tokens(f), 0);
-    console.log(`\n${files.length} files, ~${total} tokens${min ? ` at min=${min}` : ""}`);
+
+    // Cumulative histogram over the unfiltered walk, so the operator can pick
+    // a feasible min threshold without a second stats round-trip.
+    console.log("\nmin | files | ~tokens (cumulative)");
+    let cumFiles = 0;
+    let cumTokens = 0;
+    for (let m = 10; m >= 1; m--) {
+      const bucket = all.filter((f) => f.score === m);
+      cumFiles += bucket.length;
+      cumTokens += bucket.reduce((sum, f) => sum + estimateTokens(f.text), 0);
+      console.log(`${String(m).padStart(3)} | ${String(cumFiles).padStart(5)} | ~${cumTokens}`);
+    }
+
+    const total = files.reduce((sum, f) => sum + estimateTokens(f.text), 0);
+    const packNote = budget > 0 ? ` (max-tokens=${budget}: excluded ${excluded} files)` : "";
+    console.log(`\n${files.length} files, ~${total} tokens${min ? ` at min=${min}` : ""}${packNote}`);
+    if (oversizedWarning) console.log(oversizedWarning);
   },
 });

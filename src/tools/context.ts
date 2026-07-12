@@ -4,7 +4,9 @@ import { existsSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
-import { collectFiles } from "../lib/walk";
+import { collectFiles, estimateTokens, packFiles } from "../lib/walk";
+
+const CONTEXT_BUDGET = 150_000; // tokens a meditation can realistically fit
 
 export default defineCommand({
   meta: {
@@ -33,6 +35,11 @@ export default defineCommand({
       description: "Only pack files with importance score >= this (1-10)",
       required: false,
     },
+    "max-tokens": {
+      type: "string",
+      description: "Pack only the top-scored files fitting ~N tokens",
+      required: false,
+    },
     raw: {
       type: "boolean",
       description: "Skip the rtk minimal filter even when rtk is installed",
@@ -47,8 +54,18 @@ export default defineCommand({
     }
 
     // .monkignore entries fog general meditation; drop them from context.
+    const { files: walked, oversized } = await collectFiles(targetDir);
+    const visible = walked.filter((f) => !f.monkIgnored);
     const min = args.min ? Number(args.min) : 0;
-    const files = (await collectFiles(targetDir)).filter((f) => !f.monkIgnored && f.score >= min);
+    let files = visible.filter((f) => f.score >= min);
+
+    const budget = args["max-tokens"] ? Number(args["max-tokens"]) : 0;
+    let excluded = 0;
+    if (budget > 0) {
+      const pack = packFiles(files, budget);
+      files = pack.packed;
+      excluded = pack.excluded;
+    }
 
     // rtk (Rust Token Killer) strips comments and collapses blanks; a failed
     // filter falls back to the raw text so meditation never goes blind.
@@ -59,12 +76,30 @@ export default defineCommand({
         if (proc.exitCode === 0) f.text = proc.stdout.toString();
       }
     }
-    const totalTokens = files.reduce((sum, f) => sum + Math.ceil(f.text.length / 4), 0);
+    const totalTokens = files.reduce((sum, f) => sum + estimateTokens(f.text), 0);
 
     if (args["stats-only"]) {
       console.log(`Context Target: ${targetDir}`);
       console.log(`Files to pack: ${files.length}`);
       console.log(`Estimated Tokens: ~${totalTokens}${rtk ? " (rtk minimal filter active)" : ""}`);
+
+      // Cumulative histogram + the largest min that fits a meditation budget.
+      console.log("\nmin | files | ~tokens (cumulative)");
+      let fit = 0;
+      let cumFiles = 0;
+      let cumTokens = 0;
+      for (let m = 10; m >= 1; m--) {
+        const bucket = visible.filter((f) => f.score === m);
+        cumFiles += bucket.length;
+        cumTokens += bucket.reduce((sum, f) => sum + estimateTokens(f.text), 0);
+        if (cumTokens <= CONTEXT_BUDGET && cumFiles > 0) fit = m;
+        console.log(`${String(m).padStart(3)} | ${String(cumFiles).padStart(5)} | ~${cumTokens}`);
+      }
+      if (fit) console.log(`\nFits ~${CONTEXT_BUDGET} tokens at min=${fit}`);
+      else console.log(`\nNo min threshold fits ~${CONTEXT_BUDGET} tokens; use max-tokens=${CONTEXT_BUDGET}`);
+      if (oversized.length) {
+        console.log(`warning: ${oversized.length} files >500KB skipped (largest: ${oversized[0].path} ${(oversized[0].bytes / 1024 / 1024).toFixed(1)}MB)`);
+      }
       return;
     }
 
@@ -74,7 +109,16 @@ export default defineCommand({
     }
 
     let output = `<context directory="${targetDir}"${rtk ? ' filter="rtk-minimal"' : ""}>\n`;
+    // Byte-identical bodies collapse into a stub pointing at the first copy.
+    const seen = new Map<ReturnType<typeof Bun.hash>, string>();
     for (const f of files) {
+      const hash = Bun.hash(f.text);
+      const first = seen.get(hash);
+      if (first !== undefined) {
+        output += `  <file path="${f.path}" duplicateOf="${first}"/>\n`;
+        continue;
+      }
+      seen.set(hash, f.path);
       output += `  <file path="${f.path}">\n${f.text}\n  </file>\n`;
     }
     output += `</context>`;
@@ -87,9 +131,10 @@ export default defineCommand({
       outPath = join(tmpdir(), `monk-context-${randomUUID()}.xml`);
     }
 
+    const packNote = budget > 0 ? `, max-tokens=${budget} excluded ${excluded} files` : "";
     if (outPath) {
       await Bun.write(outPath, output);
-      console.log(`Context successfully written to ${outPath} (${files.length} files, ~${totalTokens} tokens).`);
+      console.log(`Context successfully written to ${outPath} (${files.length} files, ~${totalTokens} tokens${packNote}).`);
     } else {
       console.log(output);
     }
