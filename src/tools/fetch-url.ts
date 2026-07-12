@@ -1,5 +1,5 @@
 import { defineCommand } from "citty";
-import { getBrowser, closeBrowser } from "../lib/browser";
+import { newStealthPage, closeBrowser } from "../lib/browser";
 
 export default defineCommand({
   meta: {
@@ -32,6 +32,11 @@ export default defineCommand({
       description: "Timeout in ms",
       default: "30000",
     },
+    raw: {
+      type: "boolean",
+      description: "Skip noise-element pruning (nav/header/footer/script...)",
+      default: false,
+    },
     json: {
       type: "boolean",
       description: "Output JSON",
@@ -39,15 +44,9 @@ export default defineCommand({
     },
   },
   async run({ args }) {
-    const browser = await getBrowser();
-    const page = await browser.newPage();
+    const page = await newStealthPage();
 
     try {
-      await page.setUserAgent(
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
-          "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-      );
-
       await page.goto(args.url, {
         waitUntil: args.wait as any,
         timeout: Number(args.timeout),
@@ -56,16 +55,33 @@ export default defineCommand({
       const title = await page.title();
       const finalUrl = page.url();
 
+      if (!args.raw) {
+        await page.evaluate(() => {
+          document
+            .querySelectorAll(
+              "script,style,noscript,nav,header,footer,aside,template,iframe",
+            )
+            .forEach((el) => el.remove());
+        });
+      }
+
       let content: string;
       if (args.format === "html") {
         content = await page.$eval(args.selector, (el) => el.outerHTML);
       } else if (args.format === "markdown") {
         content = await page.$eval(args.selector, (el) => {
           const walk = (node: Node): string => {
-            if (node.nodeType === Node.TEXT_NODE) return node.textContent ?? "";
+            if (node.nodeType === Node.TEXT_NODE) {
+              return (node.textContent ?? "").replace(/\s+/g, " ");
+            }
             if (node.nodeType !== Node.ELEMENT_NODE) return "";
             const e = node as Element;
             const tag = e.tagName.toLowerCase();
+            if (tag === "script" || tag === "style") return "";
+            if (tag === "br") return "\n";
+            if (tag === "pre") {
+              return `\n\n\`\`\`\n${(e.textContent ?? "").trim()}\n\`\`\`\n\n`;
+            }
             const inner = Array.from(e.childNodes).map(walk).join("");
             if (/^h[1-6]$/.test(tag)) {
               return `\n\n${"#".repeat(Number(tag[1]))} ${inner}\n\n`;
@@ -74,17 +90,36 @@ export default defineCommand({
               const href = e.getAttribute("href");
               return href ? `[${inner}](${href})` : inner;
             }
-            if (tag === "p" || tag === "br") return `\n\n${inner}`;
-            if (tag === "li") return `\n- ${inner}`;
-            if (tag === "script" || tag === "style") return "";
+            if (tag === "code") return `\`${inner}\``;
+            if (tag === "strong" || tag === "b") return `**${inner}**`;
+            if (tag === "em" || tag === "i") return `*${inner}*`;
+            if (tag === "blockquote") return `\n\n> ${inner.trim()}\n\n`;
+            if (tag === "p") return `\n\n${inner}`;
+            if (tag === "li") {
+              const parent = e.parentElement;
+              if (parent?.tagName === "OL") {
+                const n = Array.prototype.indexOf.call(parent.children, e) + 1;
+                return `\n${n}. ${inner}`;
+              }
+              return `\n- ${inner}`;
+            }
             return inner;
           };
-          return walk(el).replace(/\n{3,}/g, "\n\n").trim();
+          return walk(el);
         });
       } else {
         content = await page.$eval(args.selector, (el) =>
           (el as HTMLElement).innerText,
         );
+      }
+
+      if (args.format !== "html") {
+        content = content
+          .split("\n")
+          .map((l) => l.trimEnd())
+          .join("\n")
+          .replace(/\n{3,}/g, "\n\n")
+          .trim();
       }
 
       const isJson = args.json;

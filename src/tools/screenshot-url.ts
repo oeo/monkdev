@@ -1,5 +1,5 @@
 import { defineCommand } from "citty";
-import { getBrowser, closeBrowser } from "../lib/browser";
+import { newStealthPage, closeBrowser } from "../lib/browser";
 
 export default defineCommand({
   meta: {
@@ -37,15 +37,9 @@ export default defineCommand({
     },
   },
   async run({ args }) {
-    const browser = await getBrowser();
-    const page = await browser.newPage();
+    const page = await newStealthPage();
 
     try {
-      await page.setUserAgent(
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 " +
-          "(KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-      );
-
       await page.goto(args.url, {
         waitUntil: args.wait as any,
         timeout: Number(args.timeout),
