@@ -82,8 +82,8 @@ instructions file for OpenCode). Wrap them in markers so upgrades replace cleanl
 
 | Tool | Description |
 |---|---|
-| `tree` | Maps project architecture cleanly, ranked by heuristic importance with per-file token estimates, honoring recursive ignores and dropping binaries. |
-| `context` | Packs entire directories into XML-structured blocks for deep AI ingestion. Pipes files through [rtk](https://www.rtk-ai.app/) `read -l minimal` when installed (`--raw` to skip). |
+| `tree` | Maps project architecture cleanly, ranked by heuristic importance with per-file token estimates and a cumulative per-threshold histogram. Honors recursive ignores, drops binaries; `--max-tokens N` keeps only the top-scored files fitting the budget. |
+| `context` | Packs entire directories into XML-structured blocks for deep AI ingestion. `--min` / `--max-tokens` select by importance or token budget; `--stats-only` reports the largest `min` that fits a context window. Pipes files through [rtk](https://www.rtk-ai.app/) `read -l minimal` when installed (`--raw` to skip). |
 | `catfiles` | Safely reads isolated file contents with line-number headers. |
 | `outline` | Extracts structural signatures (classes, functions) while dropping token-heavy bodies. |
 | `deps` | Maps dependency graphs across multi-language ecosystems (Node, Rust, Go, Python). |
@@ -130,6 +130,15 @@ Directives* — the agent reads them from your global prompt after install.
 
 `tree` and `context` walk recursively, reading `.gitignore` at every directory
 level (rules inherit downward and resolve relative to their own directory).
+
+A built-in blacklist (`MONK_BLACKLIST` in `src/lib/walk.ts`) hard-omits what is
+never source: package stores (`node_modules`, `site-packages`, `Pods`, …),
+build output (`dist`, `target`, `zig-out`, …), tool caches (`.pytest_cache`,
+`.gradle`, `.terraform`, …), lockfiles, and derived artifacts (`*.min.js`,
+sourcemaps, `*.tsbuildinfo`). Any directory holding a `pyvenv.cfg` is skipped
+as a virtualenv regardless of its name. Files over 500KB are skipped and
+surfaced as a warning; byte-identical duplicate files keep only their
+best-ranked copy's score.
 
 A `.monkignore` file (same syntax, also recursive) marks paths the monk should
 not ingest during general meditation. Such paths are **dropped from `context`**
