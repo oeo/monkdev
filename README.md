@@ -82,7 +82,7 @@ instructions file for OpenCode). Wrap them in markers so upgrades replace cleanl
 
 | Tool | Description |
 |---|---|
-| `tree` | Maps project architecture cleanly, ranked by heuristic importance, honoring recursive ignores and dropping binaries. |
+| `tree` | Maps project architecture cleanly, ranked by heuristic importance with per-file token estimates, honoring recursive ignores and dropping binaries. |
 | `context` | Packs entire directories into XML-structured blocks for deep AI ingestion. Pipes files through [rtk](https://www.rtk-ai.app/) `read -l minimal` when installed (`--raw` to skip). |
 | `catfiles` | Safely reads isolated file contents with line-number headers. |
 | `outline` | Extracts structural signatures (classes, functions) while dropping token-heavy bodies. |
@@ -90,7 +90,7 @@ instructions file for OpenCode). Wrap them in markers so upgrades replace cleanl
 | `symbol` | Finds cross-language definitions instantly. |
 | `log` | Manages tasks (`TODO.md`) via rigid standards. |
 | `brave-search` | Performs stealth web searches via the Brave API. |
-| `fetch-url` | Renders and extracts web pages via headless Chromium to bypass bot protection. |
+| `fetch-url` | Renders and extracts web pages via headless Chromium to bypass bot protection. Prunes nav/footer/script noise (`--raw` to skip) and caps output at `--max-tokens` (default 10000). |
 | `screenshot-url` | Captures a PNG of a rendered page via stealth Chromium for visual verification. |
 | `list` / `describe` | Self-documents the toolkit schema for LLM tool discovery. |
 
