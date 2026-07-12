@@ -48,8 +48,7 @@ export default defineCommand({
       const matcher = args.payload.toLowerCase();
       const target = join(process.cwd(), TODO_FILE);
       if (!existsSync(target)) {
-        console.error("TODO.md does not exist.");
-        process.exit(1);
+        throw new Error("TODO.md does not exist.");
       }
       
       const lines = (await Bun.file(target).text()).split("\n");
@@ -64,15 +63,13 @@ export default defineCommand({
       }
       
       if (!found) {
-        console.error(`No pending task found matching: ${matcher}`);
-        process.exit(1);
+        throw new Error(`No pending task found matching: ${matcher}`);
       }
-      
+
       await Bun.write(target, lines.join("\n"));
       
     } else {
-      console.error("Invalid action. Must be 'todo' or 'done'.");
-      process.exit(1);
+      throw new Error("Invalid action. Must be 'todo' or 'done'.");
     }
   },
 });

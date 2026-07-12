@@ -29,8 +29,7 @@ export default defineCommand({
     rawArgs.forEach((f: string) => targetFiles.add(f));
 
     if (targetFiles.size === 0) {
-      console.error("No files provided.");
-      process.exit(1);
+      throw new Error("No files provided.");
     }
 
     for (const filePath of targetFiles) {

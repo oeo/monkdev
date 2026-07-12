@@ -13,8 +13,7 @@ export default defineCommand({
   run({ args }) {
     const t = tools.find((x) => x.meta.name === args.tool);
     if (!t) {
-      console.error(`Unknown tool: ${args.tool}`);
-      process.exit(1);
+      throw new Error(`Unknown tool: ${args.tool}`);
     }
 
     const isJson = args.json;

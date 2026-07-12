@@ -5,7 +5,8 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { tools } from "./tools/index.ts";
-import { $ } from "bun";
+import { runCommand } from "citty";
+import { persistBrowser, closeBrowser } from "./lib/browser";
 import pkg from "../package.json";
 
 const server = new Server(
@@ -56,6 +57,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
   return { tools: mcpTools };
 });
 
+// Tool calls run in-process; console.log capture is global state, so calls
+// are serialized. Real stdout is the JSON-RPC channel — a stray console.log
+// reaching it would corrupt framing.
+let queue: Promise<unknown> = Promise.resolve();
+
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
   const { name, arguments: args } = request.params;
 
@@ -82,37 +88,41 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     }
   }
 
-  try {
-    const MONK_BIN = require("node:path").join(import.meta.dir, "../bin/monk");
-    // Array expansion in Bun ensures clean parameter passing
-    const cmdArgs = [name, ...positionalArgs, ...flagArgs];
-    const { stdout, stderr, exitCode } = await $`${MONK_BIN} ${cmdArgs}`.quiet();
-    
-    if (exitCode !== 0) {
+  const run = async () => {
+    const lines: string[] = [];
+    const realLog = console.log;
+    console.log = (...a: unknown[]) => lines.push(a.join(" "));
+    try {
+      await runCommand(tool, { rawArgs: [...positionalArgs, ...flagArgs] });
+      const out = lines.join("\n");
+
+      if (name === "screenshot-url" && !args?.out) {
+        return {
+          content: [{ type: "image", data: out.trim(), mimeType: "image/png" }],
+        };
+      }
+
+      return { content: [{ type: "text", text: out }] };
+    } catch (err: any) {
       return {
-        content: [{ type: "text", text: `Error:\n${stderr.toString()}` }],
+        content: [{ type: "text", text: `Error: ${err.message}` }],
         isError: true,
       };
+    } finally {
+      console.log = realLog;
     }
+  };
 
-    if (name === "screenshot-url" && !args?.out) {
-      return {
-        content: [
-          { type: "image", data: stdout.toString().trim(), mimeType: "image/png" },
-        ],
-      };
-    }
-
-    return {
-      content: [{ type: "text", text: stdout.toString() }],
-    };
-  } catch (err: any) {
-    return {
-      content: [{ type: "text", text: `Execution failed: ${err.message}` }],
-      isError: true,
-    };
-  }
+  return (queue = queue.then(run, run)) as any;
 });
+
+persistBrowser();
+for (const sig of ["SIGINT", "SIGTERM"] as const) {
+  process.on(sig, async () => {
+    await closeBrowser(true);
+    process.exit(0);
+  });
+}
 
 const transport = new StdioServerTransport();
 await server.connect(transport);

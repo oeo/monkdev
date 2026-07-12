@@ -6,7 +6,7 @@ afterEach(() => {
   spyOn(globalThis, "fetch").mockRestore();
 });
 
-test("brave-search exits if BRAVE_API_KEY is missing", async () => {
+test("brave-search throws if BRAVE_API_KEY is missing", async () => {
   // Mock Bun.file so it doesn't accidentally find the real .env file in the global fallback
   const originalBunFile = Bun.file;
   Bun.file = (() => { throw new Error("File not found") }) as any;
@@ -14,24 +14,20 @@ test("brave-search exits if BRAVE_API_KEY is missing", async () => {
   const originalEnv = process.env.BRAVE_API_KEY;
   delete process.env.BRAVE_API_KEY;
 
-  // We spy on console.error and process.exit to verify behavior without crashing the test runner
-  const exitSpy = spyOn(process, "exit").mockImplementation((() => {}) as any);
-  const errorSpy = spyOn(console, "error").mockImplementation(() => {});
-
-  // Mock args payload
-  await braveSearchCmd.run({
-    args: { query: "test", count: "10", json: true },
-    cmd: braveSearchCmd as any,
-    data: {},
-  });
-
-  expect(errorSpy).toHaveBeenCalledWith("Missing BRAVE_API_KEY in env or .env file");
-  expect(exitSpy).toHaveBeenCalledWith(1);
-
-  if (originalEnv) {
-    process.env.BRAVE_API_KEY = originalEnv;
+  try {
+    await expect(
+      braveSearchCmd.run({
+        args: { query: "test", count: "10", json: true },
+        cmd: braveSearchCmd as any,
+        data: {},
+      }),
+    ).rejects.toThrow("Missing BRAVE_API_KEY in env or .env file");
+  } finally {
+    if (originalEnv) {
+      process.env.BRAVE_API_KEY = originalEnv;
+    }
+    Bun.file = originalBunFile;
   }
-  Bun.file = originalBunFile;
 });
 
 test("brave-search executes successfully with mocked fetch", async () => {

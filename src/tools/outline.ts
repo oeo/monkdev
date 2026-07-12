@@ -22,8 +22,7 @@ export default defineCommand({
     const filePath = args.file;
     
     if (!existsSync(filePath)) {
-      console.error(`File not found: ${filePath}`);
-      process.exit(1);
+      throw new Error(`File not found: ${filePath}`);
     }
 
     const text = await Bun.file(filePath).text();

@@ -38,9 +38,7 @@ export default defineCommand({
     }
 
     if (!key) {
-      console.error("Missing BRAVE_API_KEY in env or .env file");
-      process.exit(1);
-      return;
+      throw new Error("Missing BRAVE_API_KEY in env or .env file");
     }
 
     const url = new URL("https://api.search.brave.com/res/v1/web/search");
@@ -55,10 +53,7 @@ export default defineCommand({
     });
 
     if (!res.ok) {
-      console.error(`Brave API error: ${res.status} ${res.statusText}`);
-      console.error(await res.text());
-      process.exit(1);
-      return;
+      throw new Error(`Brave API error: ${res.status} ${res.statusText}\n${await res.text()}`);
     }
 
     const data = (await res.json()) as {

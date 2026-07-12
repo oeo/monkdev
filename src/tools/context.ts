@@ -43,8 +43,7 @@ export default defineCommand({
     const targetDir = args.path || ".";
 
     if (!existsSync(targetDir) || !statSync(targetDir).isDirectory()) {
-      console.error(`Directory not found: ${targetDir}`);
-      process.exit(1);
+      throw new Error(`Directory not found: ${targetDir}`);
     }
 
     // .monkignore entries fog general meditation; drop them from context.
