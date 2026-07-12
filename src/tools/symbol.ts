@@ -1,6 +1,6 @@
 import { defineCommand } from "citty";
 import { resolve } from "node:path";
-import treeCmd from "./tree";
+import { collectFiles } from "../lib/walk";
 
 export default defineCommand({
   meta: {
@@ -24,53 +24,27 @@ export default defineCommand({
       default: false,
     },
   },
-  async run({ args, cmd, data }) {
+  async run({ args }) {
     const targetDir = resolve(args.path || ".");
+    const symbolName = args.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-    // 1. Get the flat list of files via the tree logic to respect gitignores and blacklists
-    const consoleLog = console.log;
-    const files: string[] = [];
-    
-    // Intercept tree output
-    console.log = (output) => {
-      if (typeof output === "string" && output.startsWith("[")) {
-        const parsed = JSON.parse(output);
-        parsed.forEach((p: any) => files.push(resolve(targetDir, p.path)));
-      }
-    };
-    
-    await treeCmd.run({ args: { path: targetDir, json: true }, cmd, data });
-    
-    // Restore console.log
-    console.log = consoleLog;
-
-    const symbolName = args.name;
-    
     // Dynamic Regex matching common definition keywords across Rust, TS, JS, Luau, C++
     const pattern = new RegExp(
       `\\b(class|struct|enum|interface|type|fn|function|trait|impl|let|const|var|#define)\\s+(?:[a-zA-Z0-9_<>\\[\\]\\s]*\\s+)?\\b${symbolName}\\b|\\b${symbolName}\\s*[:=]\\s*(?:function|\\()`,
-      "i"
     );
 
     const results: { file: string; line: number; content: string }[] = [];
 
-    for (const filePath of files) {
-      try {
-        const file = Bun.file(filePath);
-        const text = await file.text();
-        const lines = text.split("\n");
-        
-        for (let i = 0; i < lines.length; i++) {
-          if (pattern.test(lines[i])) {
-            results.push({
-              file: filePath,
-              line: i + 1,
-              content: lines[i].trim(),
-            });
-          }
+    for (const f of await collectFiles(targetDir)) {
+      const lines = f.text.split("\n");
+      for (let i = 0; i < lines.length; i++) {
+        if (pattern.test(lines[i])) {
+          results.push({
+            file: resolve(targetDir, f.path),
+            line: i + 1,
+            content: lines[i].trim(),
+          });
         }
-      } catch (e) {
-        // Ignore read errors for inaccessible files
       }
     }
 
