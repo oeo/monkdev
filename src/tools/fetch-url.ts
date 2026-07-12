@@ -1,6 +1,20 @@
 import { defineCommand } from "citty";
 import { newStealthPage, closeBrowser } from "../lib/browser";
 
+function truncateAtTokens(content: string, maxTokens: number) {
+  const maxChars = maxTokens * 4;
+  if (maxTokens <= 0 || content.length <= maxChars) return { content, truncated: false };
+  let cut = content.lastIndexOf("\n", maxChars);
+  if (cut < maxChars / 2) cut = maxChars; // no useful line boundary; hard cut
+  const omitted = Math.ceil((content.length - cut) / 4);
+  return {
+    content:
+      content.slice(0, cut) +
+      `\n\n[monk: truncated at ~${maxTokens} tokens, ~${omitted} tokens omitted — narrow with --selector, or raise --max-tokens]`,
+    truncated: true,
+  };
+}
+
 export default defineCommand({
   meta: {
     name: "fetch-url",
@@ -31,6 +45,11 @@ export default defineCommand({
       type: "string",
       description: "Timeout in ms",
       default: "30000",
+    },
+    "max-tokens": {
+      type: "string",
+      description: "Cap output at ~N tokens (chars/4). 0 disables.",
+      default: "10000",
     },
     raw: {
       type: "boolean",
@@ -122,12 +141,15 @@ export default defineCommand({
           .trim();
       }
 
+      const capped = truncateAtTokens(content, Number(args["max-tokens"]));
+      content = capped.content;
+
       const isJson = args.json;
 
       if (isJson) {
         console.log(
           JSON.stringify(
-            { url: finalUrl, title, format: args.format, content },
+            { url: finalUrl, title, format: args.format, truncated: capped.truncated, content },
             null,
             2,
           ),
