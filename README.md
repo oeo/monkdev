@@ -33,9 +33,11 @@ curl -fsSL https://raw.githubusercontent.com/oeo/monkdev/master/scripts/install.
 ```
 
 One line installs or upgrades everything: clones to `~/.monkdev` (override with
-`MONK_DIR`), runs `bun install`, registers the MCP server with Claude Code, and
-merges the monk directives into `~/.claude/CLAUDE.md` between markers — never
-touching your own content outside them. Re-run the same line to upgrade.
+`MONK_DIR`), runs `bun install`, registers the MCP server, and merges the monk
+directives into your global agent prompt between markers — never touching your
+own content outside them. Auto-detects **Claude Code** and **OpenCode**; for
+OpenCode it writes to `~/.config/opencode/AGENTS.md` and prints the MCP config
+snippet. Re-run the same line to upgrade.
 Requires [Bun](https://bun.sh) and git.
 
 > The script edits your global agent prompt. Skim
@@ -55,15 +57,22 @@ directives** (behavior).
 **2. Register the MCP server** — entrypoint `src/mcp.ts`, run with `bun`. Use an
 absolute path and a generous (~60s) timeout for the Chromium cold-start.
 - Claude Code: `claude mcp add monk -s user -- bun "$(pwd)/src/mcp.ts"`
-- OpenCode / Claude Desktop — add to your MCP config:
+- OpenCode — add to `~/.config/opencode/opencode.json` under `mcp`:
+  ```json
+  "monk": { "type": "local", "command": ["bun", "<abs>/src/mcp.ts"], "enabled": true }
+  ```
+- Claude Desktop — add to your MCP config:
   ```json
   "monk": { "type": "local", "command": ["bun", "<abs>/src/mcp.ts"], "timeout": 60000 }
   ```
 
 **3. Install the monk directives** — the directives are this repo's
 [`CLAUDE.md`](CLAUDE.md); they belong in your **global** prompt so the
-discipline applies everywhere (`~/.claude/CLAUDE.md` for Claude Code; the global
-instructions file for OpenCode). Wrap them in markers so upgrades replace cleanly:
+discipline applies everywhere:
+- Claude Code: `~/.claude/CLAUDE.md`
+- OpenCode: `~/.config/opencode/AGENTS.md`
+
+Wrap them in markers so upgrades replace cleanly:
   ```
   <!-- BEGIN MONK DIRECTIVES -->
   ...contents of CLAUDE.md...

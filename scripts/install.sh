@@ -1,17 +1,33 @@
 #!/usr/bin/env bash
 # Monkdev installer/upgrader.
 #   curl -fsSL https://raw.githubusercontent.com/oeo/monkdev/master/scripts/install.sh | bash
-# Env overrides: MONK_DIR (install dir), MONK_GLOBAL_PROMPT (global CLAUDE.md path).
+# Env overrides: MONK_DIR (install dir), MONK_GLOBAL_PROMPT (global prompt path).
 set -euo pipefail
 
 REPO="https://github.com/oeo/monkdev.git"
 DIR="${MONK_DIR:-$HOME/.monkdev}"
-GLOBAL="${MONK_GLOBAL_PROMPT:-$HOME/.claude/CLAUDE.md}"
 BEGIN="<!-- BEGIN MONK DIRECTIVES -->"
 END="<!-- END MONK DIRECTIVES -->"
 
 command -v git >/dev/null || { echo "git is required." >&2; exit 1; }
 command -v bun >/dev/null || { echo "bun is required — install from https://bun.sh" >&2; exit 1; }
+
+# Detect agent platform
+IS_OPENCODE=0
+if [ -f "$HOME/.config/opencode/opencode.json" ]; then
+  IS_OPENCODE=1
+fi
+
+# Default global prompt path depends on platform
+if [ -z "${MONK_GLOBAL_PROMPT:-}" ]; then
+  if [ "$IS_OPENCODE" -eq 1 ]; then
+    GLOBAL="$HOME/.config/opencode/AGENTS.md"
+  else
+    GLOBAL="$HOME/.claude/CLAUDE.md"
+  fi
+else
+  GLOBAL="$MONK_GLOBAL_PROMPT"
+fi
 
 if [ -d "$DIR/.git" ]; then
   echo "Updating monkdev at $DIR"
@@ -23,13 +39,19 @@ fi
 
 (cd "$DIR" && bun install)
 
+# Register MCP server
 if command -v claude >/dev/null; then
   claude mcp remove monk -s user >/dev/null 2>&1 || true
   claude mcp add monk -s user -- bun "$DIR/src/mcp.ts"
   echo "Registered MCP server 'monk' with Claude Code."
+elif [ "$IS_OPENCODE" -eq 1 ]; then
+  cat <<EOF
+OpenCode detected. Add/edit the MCP server in ~/.config/opencode/opencode.json:
+  "monk": { "type": "local", "command": ["bun", "$DIR/src/mcp.ts"], "enabled": true }
+EOF
 else
   cat <<EOF
-Claude CLI not found. Add the MCP server to your agent config manually:
+Add the MCP server to your agent config manually:
   "monk": { "type": "local", "command": ["bun", "$DIR/src/mcp.ts"], "timeout": 60000 }
 EOF
 fi
