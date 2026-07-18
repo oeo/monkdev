@@ -127,15 +127,17 @@ dot-prefix (AOL-style); legacy keyword forms below are fallback aliases.
 | `.meditate <topic>` | Targeted ingestion: focus only on components relevant to the topic. |
 | `.meditate deeply` | Holistic ingestion: pack whole directories via `context`, dependencies included. |
 | `.meditate <N>` | Threshold ingestion: exactly the files scoring >= N (1-10); standard ≈ 8, deep ≈ 5. |
-| `.research <topic>` | Parallel Brave searches + page reads, then synthesize. |
+| `.do_research <topic>` | Parallel Brave searches + page reads, then synthesize. |
+| `.update_docs` | Align the README and co-located docs with the current code truth. |
 | `.reflect` | Record session wisdom as a git commit (`Completed` / `Decisions` / `Next` / `Patterns`). |
 | `.recall [N\|topic\|all]` | Search past reflection commits; default lists all, N shows last N with bodies, topic filters. |
-| `.docs` | Align the README and co-located docs with the current code truth. |
 | `.vers` | Report the installed monk toolkit version. |
+| `.subagent <instr>` | Spawn a sub-agent that meditates first, then executes a scoped task. |
 | `.cur` | Read cur.md and summarize unfinished items with a priority recommendation. |
 | `.cur done` | Scan cur.md for completed items, check them off, and move to `## finished`. |
 | `.cur add <item>` | Append a new task item to cur.md (2-space indent subs, default `## high`). |
 | `.fan` | Spawn 3 adversarial monk sub-agents to find flaws in your implementation plan before coding. |
+| `.help` | Print all monk commands as a formatted unix-style man page with the monk codename. |
 
 The full ritual semantics (meditation depths, the Measure–Prove–Cut protocol,
 commit formats) live in [CLAUDE.md](CLAUDE.md) under *Explicit Command
