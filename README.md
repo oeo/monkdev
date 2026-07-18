@@ -135,6 +135,8 @@ dot-prefix (AOL-style); legacy keyword forms below are fallback aliases.
 | `.cur` | Read cur.md and summarize unfinished items with a priority recommendation. |
 | `.cur done` | Scan cur.md for completed items, check them off, and move to `## finished`. |
 | `.fan` | Spawn 3 adversarial monk sub-agents to find flaws in your implementation plan before coding. |
+| `.audit [scope]` | Scan project for consistency violations (UI, code organization, naming, deployment) via parallel sub-agents. |
+| `.dev` | Detect and start the local dev environment (skills, justfile, Makefile, npm scripts, docker, docs). |
 | `.help` | Print all monk commands as a formatted unix-style man page with the monk codename. |
 
 The full ritual semantics (meditation depths, the Measure–Prove–Cut protocol,
