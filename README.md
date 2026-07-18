@@ -134,7 +134,6 @@ dot-prefix (AOL-style); legacy keyword forms below are fallback aliases.
 | `.subagent <instr>` | Spawn a sub-agent that meditates first, then executes a scoped task. |
 | `.cur` | Read cur.md and summarize unfinished items with a priority recommendation. |
 | `.cur done` | Scan cur.md for completed items, check them off, and move to `## finished`. |
-| `.cur add <item>` | Append a new task item to cur.md (2-space indent subs, default `## high`). |
 | `.fan` | Spawn 3 adversarial monk sub-agents to find flaws in your implementation plan before coding. |
 | `.help` | Print all monk commands as a formatted unix-style man page with the monk codename. |
 
