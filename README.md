@@ -134,8 +134,9 @@ dot-prefix (AOL-style); legacy keyword forms below are fallback aliases.
 | `.subagent <instr>` | Spawn a sub-agent that meditates first, then executes a scoped task. |
 | `.cur` | Read cur.md and summarize unfinished items with a priority recommendation. |
 | `.cur done` | Scan cur.md for completed items, check them off, and move to `## finished`. |
-| `.check [N]` | Spawn N adversarial monk sub-agents (default 5) to find flaws in your implementation plan. |
-| `.audit [scope]` | Scan project for consistency violations (UI, code organization, naming, deployment) via parallel sub-agents. |
+| `.versus [N]` | Spawn N adversarial monk sub-agents (default 5) to find flaws in your implementation plan. |
+| `.audit <cmd>` | Codebase under oath: gate, debt, smell, split, sec, perf, bugs, mod, arch. Pipeable. |
+| `.plan` | Toggle plan mode: comprehensive plan before edits, no file changes without consent. Repeat to deepen. |
 | `.dev` | Detect and start the local dev environment (skills, justfile, Makefile, npm scripts, docker, docs). |
 | `.help` | Print all monk commands as a formatted unix-style man page with the monk codename. |
 
