@@ -44,7 +44,7 @@ export default defineCommand({
     timeout: {
       type: "string",
       description: "Timeout in ms",
-      default: "30000",
+      default: "7500",
     },
     "max-tokens": {
       type: "string",
