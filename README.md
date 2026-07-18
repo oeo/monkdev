@@ -131,7 +131,7 @@ dot-prefix (AOL-style); legacy keyword forms below are fallback aliases.
 | `.update_docs` | Align the README and co-located docs with the current code truth. |
 | `.reflect` | Record session wisdom as a git commit (`Completed` / `Decisions` / `Next` / `Patterns`). |
 | `.recall [N\|topic\|all]` | Search past reflection commits; default lists all, N shows last N with bodies, topic filters. |
-| `.vers` | Report the installed monk toolkit version. |
+| `.version` | Report the installed monk toolkit version. |
 | `.subagent <instr>` | Spawn a sub-agent that meditates first, then executes a scoped task. |
 | `.cur` | Read cur.md and summarize unfinished items with a priority recommendation. |
 | `.cur done` | Scan cur.md for completed items, check them off, and move to `## finished`. |
