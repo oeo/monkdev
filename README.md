@@ -98,7 +98,6 @@ Wrap them in markers so upgrades replace cleanly:
 | `outline` | Extracts structural signatures (classes, functions) while dropping token-heavy bodies. |
 | `deps` | Maps dependency graphs across multi-language ecosystems (Node, Rust, Go, Python). |
 | `symbol` | Finds cross-language definitions instantly. |
-| `log` | Manages tasks (`TODO.md`) via rigid standards. |
 | `brave-search` | Searches the web via the Brave Search API. |
 | `fetch-url` | Renders and extracts web pages via rebrowser-puppeteer-core (C++-patched Chromium) to bypass bot protection. Prunes nav/footer/script noise (`--raw` to skip) and caps output at `--max-tokens` (default 10000). |
 | `screenshot-url` | Captures a PNG of a rendered page via rebrowser-puppeteer-core (C++-patched Chromium) for visual verification. Supports `--selector`, `--fullpage`, and `--out <file>` (base64 otherwise). |
