@@ -82,7 +82,8 @@ Wrap them in markers so upgrades replace cleanly:
 **4. Configure & verify**
 - Optional: `brave-search` needs `BRAVE_API_KEY` in `.env` (copy `.env.example`);
   every other tool works without a key.
-- First `screenshot-url` / `fetch-url` call downloads a headless Chromium (~200MB).
+- `fetch-url` / `screenshot-url` require Google Chrome or Chromium installed
+  (auto-detected via common paths). No bundled browser download needed.
 - Restart the agent session, then verify the `monk_tree` tool responds.
 
 </details>
@@ -99,8 +100,8 @@ Wrap them in markers so upgrades replace cleanly:
 | `symbol` | Finds cross-language definitions instantly. |
 | `log` | Manages tasks (`TODO.md`) via rigid standards. |
 | `brave-search` | Searches the web via the Brave Search API. |
-| `fetch-url` | Renders and extracts web pages via headless Chromium to bypass bot protection. Prunes nav/footer/script noise (`--raw` to skip) and caps output at `--max-tokens` (default 10000). |
-| `screenshot-url` | Captures a PNG of a rendered page via stealth Chromium for visual verification. Supports `--selector`, `--fullpage`, and `--out <file>` (base64 otherwise). |
+| `fetch-url` | Renders and extracts web pages via rebrowser-puppeteer-core (C++-patched Chromium) to bypass bot protection. Prunes nav/footer/script noise (`--raw` to skip) and caps output at `--max-tokens` (default 10000). |
+| `screenshot-url` | Captures a PNG of a rendered page via rebrowser-puppeteer-core (C++-patched Chromium) for visual verification. Supports `--selector`, `--fullpage`, and `--out <file>` (base64 otherwise). |
 | `list` / `describe` | Self-documents the toolkit from the CLI (hidden from the MCP surface). |
 
 ## Usage

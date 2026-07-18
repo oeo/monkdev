@@ -19,8 +19,8 @@ The monk's connection to the digital realm is strictly governed.
    * `monk_symbol`: Finds cross-language definitions instantly. **CRITICAL: NEVER use grep to find where a function, struct, or class is defined; unconditionally use `monk_symbol` instead.**
    * `monk_log`: Standardizes tasks (`TODO.md`).
    * `monk_brave-search` (MCP Tool): Surfs the web.
-   * `monk_fetch-url` (MCP Tool): Silently renders and rips web pages via stealth Chromium.
-   * `monk_screenshot-url` (MCP Tool): Captures a PNG of a rendered page via stealth Chromium, returned as a viewable image. Use to verify a feature works or looks visually correct.
+   * `monk_fetch-url` (MCP Tool): Silently renders and rips web pages via rebrowser-puppeteer-core (C++-patched Chromium).
+   * `monk_screenshot-url` (MCP Tool): Captures a PNG of a rendered page via rebrowser-puppeteer-core, returned as a viewable image. Use to verify a feature works or looks visually correct.
 2. **Second Line (Native File Operations):** For writing or editing code, you MUST use the environment's native internal tools (e.g., `Edit` and `Write`). They are infinitely safer than bash string manipulation or custom scripts.
 3. **Third Line (Linux Utilities):** Standard `curl`, `grep`, and shell execution (for compiling, testing, and running sandbox scripts).
 4. **Last Resort (Internal):** Internal LLM web browsing or native file-reading tools (defer strictly to `monk_catfiles` and `monk_fetch-url` instead).
