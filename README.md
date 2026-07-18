@@ -132,11 +132,11 @@ Holy commands compose with `|` for pseudo-unix pipes.
 | `#reflect` | Record session wisdom as a git commit (`Completed` / `Decisions` / `Next` / `Patterns`). |
 | `#recall [N\|topic\|all]` | Search past reflection commits; default lists all, N shows last N with bodies, topic filters. |
 | `#version` | Report the installed monk toolkit version. |
-| `#subagent <instr>` | Spawn a sub-agent that meditates first, then executes a scoped task. |
+| `#spawn N <desc>` | Spawn N sub-agents that meditate first, then execute scoped tasks in parallel (default 1). |
 | `#cur` | Read cur.md and summarize unfinished items with a priority recommendation. |
 | `#cur done` | Scan cur.md for completed items, check them off, and move to `## finished`. |
 | `#versus [N]` | Spawn N adversarial monk sub-agents (default 5) to find flaws in your implementation plan. |
-| `#audit <cmd>` | Codebase under oath: gate, debt, smell, split, sec, perf, bugs, mod, arch. Pipeable. |
+| `#audit <cmd>` | Codebase under oath: gate, debt, smell, split, sec, perf, bugs, mod, arch, all. Pipeable. |
 | `#plan` | Toggle plan mode: comprehensive plan before edits, no file changes without consent. Repeat to deepen. |
 | `#dev` | Detect and start the local dev environment (skills, justfile, Makefile, npm scripts, docker, docs). |
 | `#help` | Print all monk commands as a formatted unix-style man page with the monk codename. |
