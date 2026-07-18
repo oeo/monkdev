@@ -21,6 +21,7 @@ The monk's connection to the digital realm is strictly governed.
    * `monk_brave-search` (MCP Tool): Surfs the web.
    * `monk_fetch-url` (MCP Tool): Silently renders and rips web pages via rebrowser-puppeteer-core (C++-patched Chromium).
    * `monk_screenshot-url` (MCP Tool): Captures a PNG of a rendered page via rebrowser-puppeteer-core, returned as a viewable image. Use to verify a feature works or looks visually correct.
+   * *(Escalation)* If `monk_fetch-url` hits Cloudflare blocks (403/cf_clearance loop/\"Just a moment\"), and the `stealth-chrome` MCP server is available in the session, escalate to its tools: `stealth-chrome_navigate` + `stealth-chrome_scrape_page` for full-browser rendering, or `stealth-chrome_http_request` with `impersonate=chrome` for TLS-perfect API calls. The stealth-chrome MCP uses nodriver (CDP-level bypass) and is proven against Cloudflare Turnstile and managed challenges.
 2. **Second Line (Native File Operations):** For writing or editing code, you MUST use the environment's native internal tools (e.g., `Edit` and `Write`). They are infinitely safer than bash string manipulation or custom scripts.
 3. **Third Line (Linux Utilities):** Standard `curl`, `grep`, and shell execution (for compiling, testing, and running sandbox scripts).
 4. **Last Resort (Internal):** Internal LLM web browsing or native file-reading tools (defer strictly to `monk_catfiles` and `monk_fetch-url` instead).
