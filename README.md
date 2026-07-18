@@ -132,6 +132,8 @@ the toolkit. Use them to scaffold your own sessions.
 | `full_recall` | Review all accumulated reflections at once. |
 | `update_docs` | Align the README and co-located docs with the current code truth. |
 | `vers` | Report the installed monk toolkit version. |
+| `cur` | Read local `cur.md` and summarize unfinished items with a priority recommendation. |
+| `update cur` | Scan `cur.md` for completed items, check them off (`[x]`), and move them to the `## finished` section. |
 
 The full ritual semantics (meditation depths, the Measure–Prove–Cut protocol,
 commit formats) live in [CLAUDE.md](CLAUDE.md) under *Explicit Command
