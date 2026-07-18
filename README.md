@@ -117,28 +117,29 @@ The tools are self-documenting from the CLI:
 
 Directives are the monk's verbs — natural-language keywords the operator types to
 drive the workflow. The agent recognizes each and runs the matching ritual with
-the toolkit. Use them to scaffold your own sessions. All commands accept the `.`
-dot-prefix (AOL-style); legacy keyword forms below are fallback aliases.
+the toolkit. Use them to scaffold your own sessions. All commands use the `#`
+pound-prefix (holy commands); legacy keyword forms below are fallback aliases.
+Holy commands compose with `|` for pseudo-unix pipes.
 
 | Directive | What it does |
 |---|---|
-| `.meditate` | Ingest context before acting — `tree` to map, then read the core files. Always does `.recall 10` + cur.md first. |
-| `.meditate <topic>` | Targeted ingestion: focus only on components relevant to the topic. |
-| `.meditate deeply` | Holistic ingestion: pack whole directories via `context`, dependencies included. |
-| `.meditate <N>` | Threshold ingestion: exactly the files scoring >= N (1-10); standard ≈ 8, deep ≈ 5. |
-| `.do_research <topic>` | Parallel Brave searches + page reads, then synthesize. |
-| `.update_docs` | Align the README and co-located docs with the current code truth. |
-| `.reflect` | Record session wisdom as a git commit (`Completed` / `Decisions` / `Next` / `Patterns`). |
-| `.recall [N\|topic\|all]` | Search past reflection commits; default lists all, N shows last N with bodies, topic filters. |
-| `.version` | Report the installed monk toolkit version. |
-| `.subagent <instr>` | Spawn a sub-agent that meditates first, then executes a scoped task. |
-| `.cur` | Read cur.md and summarize unfinished items with a priority recommendation. |
-| `.cur done` | Scan cur.md for completed items, check them off, and move to `## finished`. |
-| `.versus [N]` | Spawn N adversarial monk sub-agents (default 5) to find flaws in your implementation plan. |
-| `.audit <cmd>` | Codebase under oath: gate, debt, smell, split, sec, perf, bugs, mod, arch. Pipeable. |
-| `.plan` | Toggle plan mode: comprehensive plan before edits, no file changes without consent. Repeat to deepen. |
-| `.dev` | Detect and start the local dev environment (skills, justfile, Makefile, npm scripts, docker, docs). |
-| `.help` | Print all monk commands as a formatted unix-style man page with the monk codename. |
+| `#meditate` | Ingest context before acting — `tree` to map, then read the core files. Always does `#recall 10` + cur.md first. |
+| `#meditate <topic>` | Targeted ingestion: focus only on components relevant to the topic. |
+| `#meditate deeply` | Holistic ingestion: pack whole directories via `context`, dependencies included. |
+| `#meditate <N>` | Threshold ingestion: exactly the files scoring >= N (1-10); standard ≈ 8, deep ≈ 5. |
+| `#do_research <topic>` | Parallel Brave searches + page reads, then synthesize. |
+| `#update_docs` | Align the README and co-located docs with the current code truth. |
+| `#reflect` | Record session wisdom as a git commit (`Completed` / `Decisions` / `Next` / `Patterns`). |
+| `#recall [N\|topic\|all]` | Search past reflection commits; default lists all, N shows last N with bodies, topic filters. |
+| `#version` | Report the installed monk toolkit version. |
+| `#subagent <instr>` | Spawn a sub-agent that meditates first, then executes a scoped task. |
+| `#cur` | Read cur.md and summarize unfinished items with a priority recommendation. |
+| `#cur done` | Scan cur.md for completed items, check them off, and move to `## finished`. |
+| `#versus [N]` | Spawn N adversarial monk sub-agents (default 5) to find flaws in your implementation plan. |
+| `#audit <cmd>` | Codebase under oath: gate, debt, smell, split, sec, perf, bugs, mod, arch. Pipeable. |
+| `#plan` | Toggle plan mode: comprehensive plan before edits, no file changes without consent. Repeat to deepen. |
+| `#dev` | Detect and start the local dev environment (skills, justfile, Makefile, npm scripts, docker, docs). |
+| `#help` | Print all monk commands as a formatted unix-style man page with the monk codename. |
 
 The full ritual semantics (meditation depths, the Measure–Prove–Cut protocol,
 commit formats) live in [CLAUDE.md](CLAUDE.md) under *Explicit Command
