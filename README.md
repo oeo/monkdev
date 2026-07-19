@@ -94,14 +94,14 @@ Wrap them in markers so upgrades replace cleanly:
 | Tool | Description |
 |---|---|
 | `tree` | Maps project architecture cleanly, ranked by heuristic importance with per-file token estimates and a cumulative per-threshold histogram. Honors recursive ignores, drops binaries; `--max-tokens N` keeps only the top-scored files fitting the budget. |
-| `context` | Packs entire directories into XML-structured blocks for deep AI ingestion. `--min` / `--max-tokens` select by importance or token budget; `--stats-only` reports the largest `min` that fits a context window. Pipes files through [rtk](https://www.rtk-ai.app/) `read -l minimal` when installed (`--raw` to skip). |
-| `catfiles` | Safely reads batches of files with path and LOC headers; `--stats-only` reports LOC and token estimates. |
+| `context` | Packs entire directories into XML-structured blocks for deep AI ingestion. `--min` / `--max-tokens` select by importance or token budget; `--stats-only` reports the largest `min` that fits a context window. Output over ~10k tokens is auto-written to a temp file (`--out` to control the path). Pipes files through [rtk](https://www.rtk-ai.app/) `read -l minimal` when installed (`--raw` to skip). |
+| `catfiles` | Safely reads batches of files with path and LOC headers; refuses files over 5000 lines; `--stats-only` reports LOC and token estimates. |
 | `outline` | Extracts structural signatures (classes, functions) while dropping token-heavy bodies. |
 | `deps` | Maps dependency graphs across multi-language ecosystems (Node, Rust, Go, Python). |
 | `symbol` | Finds cross-language definitions instantly. |
 | `brave-search` | Searches the web via the Brave Search API. |
-| `fetch-url` | Renders and extracts web pages via rebrowser-puppeteer-core (C++-patched Chromium) to bypass bot protection. Prunes nav/footer/script noise (`--raw` to skip) and caps output at `--max-tokens` (default 10000). |
-| `screenshot-url` | Captures a PNG of a rendered page via rebrowser-puppeteer-core (C++-patched Chromium) for visual verification. Supports `--selector`, `--fullpage`, and `--out <file>` (base64 otherwise). |
+| `fetch-url` | Renders and extracts web pages through your installed Chrome/Chromium, driven by rebrowser-puppeteer-core's stealth patches to bypass bot protection. Prunes nav/footer/script noise (`--raw` to skip) and caps output at `--max-tokens` (default 10000). |
+| `screenshot-url` | Captures a PNG of a rendered page through the same stealth Chrome pipeline for visual verification. Supports `--selector`, `--fullpage`, and `--out <file>` (base64 otherwise). |
 | `list` / `describe` | Self-documents the toolkit from the CLI (hidden from the MCP surface). |
 
 ## Usage
@@ -158,7 +158,8 @@ build output (`dist`, `target`, `zig-out`, …), tool caches (`.pytest_cache`,
 sourcemaps, `*.tsbuildinfo`). Any directory holding a `pyvenv.cfg` is skipped
 as a virtualenv regardless of its name. Files over 500KB are skipped and
 surfaced as a warning; byte-identical duplicate files keep only their
-best-ranked copy's score.
+best-ranked copy's score, and `context` packs the body once, stubbing the
+copies with `duplicateOf`.
 
 A `.monkignore` file (same syntax, also recursive) marks paths the monk should
 not ingest during general meditation. Such paths are **dropped from `context`**
