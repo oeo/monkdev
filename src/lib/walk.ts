@@ -109,6 +109,24 @@ export function packFiles(files: WalkEntry[], maxTokens: number) {
   return { packed, usedTokens: used, excluded: files.length - packed.length };
 }
 
+// Cumulative per-threshold histogram shared by tree and context so their
+// numbers can never drift. Returns the largest min whose cumulative tokens
+// fit `budget` (0 = no budget tracking).
+export function printHistogram(files: WalkEntry[], budget = 0): number {
+  console.log("\nmin | files | ~tokens (cumulative)");
+  let fit = 0;
+  let cumFiles = 0;
+  let cumTokens = 0;
+  for (let m = 10; m >= 1; m--) {
+    const bucket = files.filter((f) => f.score === m);
+    cumFiles += bucket.length;
+    cumTokens += bucket.reduce((sum, f) => sum + estimateTokens(f.text), 0);
+    if (budget > 0 && cumTokens <= budget && cumFiles > 0) fit = m;
+    console.log(`${String(m).padStart(3)} | ${String(cumFiles).padStart(5)} | ~${cumTokens}`);
+  }
+  return fit;
+}
+
 // An ignore matcher rooted at the directory its rules were declared in.
 // Paths must be tested relative to `base` so that anchored patterns (e.g. /local)
 // resolve correctly at any depth.

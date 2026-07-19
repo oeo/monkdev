@@ -4,7 +4,7 @@ import { existsSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
-import { collectFiles, estimateTokens, packFiles } from "../lib/walk";
+import { collectFiles, estimateTokens, packFiles, printHistogram } from "../lib/walk";
 
 const CONTEXT_BUDGET = 150_000; // tokens a meditation can realistically fit
 
@@ -86,17 +86,7 @@ export default defineCommand({
       console.log(`Estimated Tokens: ~${totalTokens}${rtk ? " (rtk minimal filter active)" : ""}`);
 
       // Cumulative histogram + the largest min that fits a meditation budget.
-      console.log("\nmin | files | ~tokens (cumulative)");
-      let fit = 0;
-      let cumFiles = 0;
-      let cumTokens = 0;
-      for (let m = 10; m >= 1; m--) {
-        const bucket = visible.filter((f) => f.score === m);
-        cumFiles += bucket.length;
-        cumTokens += bucket.reduce((sum, f) => sum + estimateTokens(f.text), 0);
-        if (cumTokens <= CONTEXT_BUDGET && cumFiles > 0) fit = m;
-        console.log(`${String(m).padStart(3)} | ${String(cumFiles).padStart(5)} | ~${cumTokens}`);
-      }
+      const fit = printHistogram(visible, CONTEXT_BUDGET);
       if (fit) console.log(`\nFits ~${CONTEXT_BUDGET} tokens at min=${fit}`);
       else console.log(`\nNo min threshold fits ~${CONTEXT_BUDGET} tokens; use max-tokens=${CONTEXT_BUDGET}`);
       if (oversized.length) {

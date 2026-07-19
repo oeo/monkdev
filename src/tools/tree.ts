@@ -1,5 +1,5 @@
 import { defineCommand } from "citty";
-import { collectFiles, estimateTokens, packFiles } from "../lib/walk";
+import { collectFiles, estimateTokens, packFiles, printHistogram } from "../lib/walk";
 
 export default defineCommand({
   meta: {
@@ -69,18 +69,10 @@ export default defineCommand({
       console.log(`${String(f.score).padEnd(5)} | ${String(f.loc).padEnd(5)} | ${String(estimateTokens(f.text)).padEnd(5)} | ${f.path}${tag}`);
     }
 
-    // Cumulative histogram over the unfiltered walk, so the operator can pick
-    // a feasible min threshold without a second stats round-trip. monk-omit
-    // files are excluded so the numbers match what context would pack.
-    console.log("\nmin | files | ~tokens (cumulative)");
-    let cumFiles = 0;
-    let cumTokens = 0;
-    for (let m = 10; m >= 1; m--) {
-      const bucket = all.filter((f) => !f.monkIgnored && f.score === m);
-      cumFiles += bucket.length;
-      cumTokens += bucket.reduce((sum, f) => sum + estimateTokens(f.text), 0);
-      console.log(`${String(m).padStart(3)} | ${String(cumFiles).padStart(5)} | ~${cumTokens}`);
-    }
+    // Histogram over the unfiltered walk, so the operator can pick a feasible
+    // min threshold without a second stats round-trip. monk-omit files are
+    // excluded so the numbers match what context would pack.
+    printHistogram(all.filter((f) => !f.monkIgnored));
 
     const total = files.reduce((sum, f) => sum + estimateTokens(f.text), 0);
     const packNote = budget > 0 ? ` (max-tokens=${budget}: excluded ${excluded} files)` : "";
