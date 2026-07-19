@@ -45,25 +45,27 @@ const animals = [
   "squirrel", "tiger", "turtle", "wolf", "zebra",
 ];
 
-function pick<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)];
+function hashNum(seed: string, max: number, offset = 0): number {
+  const h = Bun.hash(seed + ":" + offset);
+  const n = Number(BigInt.asIntN(32, h));
+  return ((n % max) + max) % max;
 }
 
-export function funnyName(alliteration = true): string {
+export function funnyName(version: string = "0.0.0", alliteration = true): string {
   if (!alliteration) {
-    return `${pick(adjectives)} ${pick(animals)}`;
+    const adj = adjectives[hashNum(version, adjectives.length, 0)];
+    const ani = animals[hashNum(version, animals.length, 1)];
+    return `${adj} ${ani}`;
   }
 
-  let tries = 0;
-  while (tries < 20) {
-    const animal = pick(animals);
-    const first = animal.charAt(0);
-    const matching = adjectives.filter((a) => a.charAt(0) === first);
-    if (matching.length > 0) {
-      return `${pick(matching)} ${animal}`;
-    }
-    tries++;
+  const animal = animals[hashNum(version, animals.length)];
+  const first = animal.charAt(0);
+  const matching = adjectives.filter((a) => a.charAt(0) === first);
+
+  if (matching.length === 0) {
+    return funnyName(version, false);
   }
 
-  return `${pick(adjectives)} ${pick(animals)}`;
+  const adj = matching[hashNum(version, matching.length, 1)];
+  return `${adj} ${animal}`;
 }
