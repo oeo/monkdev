@@ -34,9 +34,11 @@ export default defineCommand({
     const { files: all, oversized } = await collectFiles(targetDir);
 
     const min = args.min ? Number(args.min) : 0;
+    if (Number.isNaN(min)) throw new Error(`Invalid --min: ${args.min}`);
     let files = all.filter((f) => f.score >= min);
 
     const budget = args["max-tokens"] ? Number(args["max-tokens"]) : 0;
+    if (Number.isNaN(budget)) throw new Error(`Invalid --max-tokens: ${args["max-tokens"]}`);
     let excluded = 0;
     if (budget > 0) {
       const pack = packFiles(files, budget);
@@ -68,12 +70,13 @@ export default defineCommand({
     }
 
     // Cumulative histogram over the unfiltered walk, so the operator can pick
-    // a feasible min threshold without a second stats round-trip.
+    // a feasible min threshold without a second stats round-trip. monk-omit
+    // files are excluded so the numbers match what context would pack.
     console.log("\nmin | files | ~tokens (cumulative)");
     let cumFiles = 0;
     let cumTokens = 0;
     for (let m = 10; m >= 1; m--) {
-      const bucket = all.filter((f) => f.score === m);
+      const bucket = all.filter((f) => !f.monkIgnored && f.score === m);
       cumFiles += bucket.length;
       cumTokens += bucket.reduce((sum, f) => sum + estimateTokens(f.text), 0);
       console.log(`${String(m).padStart(3)} | ${String(cumFiles).padStart(5)} | ~${cumTokens}`);

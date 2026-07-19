@@ -1,4 +1,5 @@
 import { defineCommand } from "citty";
+import type { PuppeteerLifeCycleEvent } from "rebrowser-puppeteer-core";
 import { newStealthPage, closeBrowser } from "../lib/browser";
 
 function truncateAtTokens(content: string, maxTokens: number) {
@@ -67,7 +68,7 @@ export default defineCommand({
 
     try {
       await page.goto(args.url, {
-        waitUntil: args.wait as any,
+        waitUntil: args.wait as PuppeteerLifeCycleEvent,
         timeout: Number(args.timeout),
       });
 
@@ -155,7 +156,8 @@ export default defineCommand({
           ),
         );
       } else {
-        console.error(`# ${title}\n# ${finalUrl}\n`);
+        // stdout, not stderr: the MCP bridge only captures console.log.
+        console.log(`# ${title}\n# ${finalUrl}\n`);
         console.log(content);
       }
     } finally {

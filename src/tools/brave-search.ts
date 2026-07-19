@@ -1,4 +1,5 @@
 import { defineCommand } from "citty";
+import { join } from "node:path";
 
 export default defineCommand({
   meta: {
@@ -25,16 +26,15 @@ export default defineCommand({
   async run({ args }) {
     let key = process.env.BRAVE_API_KEY;
     
-    // Fallback: If not in env, try to load it from the monkdev installation directory
+    // Fallback: If not in env, try to load it from the monkdev installation
+    // directory. An absent or unreadable .env falls through to the explicit
+    // missing-key error below.
     if (!key) {
       try {
-        const envPath = require("node:path").join(import.meta.dir, "../../.env");
-        const envContent = await Bun.file(envPath).text();
-        const match = envContent.match(/BRAVE_API_KEY=(.*)/);
-        if (match && match[1]) {
-          key = match[1].trim();
-        }
-      } catch (e) {}
+        const envContent = await Bun.file(join(import.meta.dir, "../../.env")).text();
+        const line = envContent.split("\n").find((l) => l.startsWith("BRAVE_API_KEY="));
+        if (line) key = line.slice("BRAVE_API_KEY=".length).trim();
+      } catch {}
     }
 
     if (!key) {

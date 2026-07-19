@@ -57,9 +57,11 @@ export default defineCommand({
     const { files: walked, oversized } = await collectFiles(targetDir);
     const visible = walked.filter((f) => !f.monkIgnored);
     const min = args.min ? Number(args.min) : 0;
+    if (Number.isNaN(min)) throw new Error(`Invalid --min: ${args.min}`);
     let files = visible.filter((f) => f.score >= min);
 
     const budget = args["max-tokens"] ? Number(args["max-tokens"]) : 0;
+    if (Number.isNaN(budget)) throw new Error(`Invalid --max-tokens: ${args["max-tokens"]}`);
     let excluded = 0;
     if (budget > 0) {
       const pack = packFiles(files, budget);
@@ -119,7 +121,8 @@ export default defineCommand({
         continue;
       }
       seen.set(hash, f.path);
-      output += `  <file path="${f.path}">\n${f.text}\n  </file>\n`;
+      // A body containing the closing tag would corrupt the XML structure.
+      output += `  <file path="${f.path}">\n${f.text.replaceAll("</file>", "<\\/file>")}\n  </file>\n`;
     }
     output += `</context>`;
 

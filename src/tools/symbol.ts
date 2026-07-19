@@ -28,9 +28,9 @@ export default defineCommand({
     const targetDir = resolve(args.path || ".");
     const symbolName = args.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-    // Dynamic Regex matching common definition keywords across Rust, TS, JS, Luau, C++
+    // Dynamic Regex matching common definition keywords across Rust, TS, JS, Python, Go, Luau, C++
     const pattern = new RegExp(
-      `\\b(class|struct|enum|interface|type|fn|function|trait|impl|let|const|var|#define)\\s+(?:[a-zA-Z0-9_<>\\[\\]\\s]*\\s+)?\\b${symbolName}\\b|\\b${symbolName}\\s*[:=]\\s*(?:function|\\()`,
+      `\\b(class|struct|enum|interface|type|fn|func|def|function|trait|impl|let|const|var|#define)\\s+(?:[a-zA-Z0-9_<>\\[\\]\\s]*\\s+)?\\b${symbolName}\\b|\\b${symbolName}\\s*[:=]\\s*(?:function|\\()`,
     );
 
     const results: { file: string; line: number; content: string }[] = [];
@@ -48,11 +48,11 @@ export default defineCommand({
       }
     }
 
-    if (args.json || !process.stdout.isTTY) {
+    if (args.json) {
       console.log(JSON.stringify(results, null, 2));
     } else {
       if (results.length === 0) {
-        console.log(`No definitions found for symbol: '${symbolName}'`);
+        console.log(`No definitions found for symbol: '${args.name}'`);
         return;
       }
       for (const res of results) {

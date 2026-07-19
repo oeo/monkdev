@@ -123,6 +123,12 @@ for (const sig of ["SIGINT", "SIGTERM"] as const) {
     process.exit(0);
   });
 }
+// A client that vanishes without signaling closes our stdin; without this the
+// persistent Chromium would outlive the server as an orphan.
+process.stdin.on("end", async () => {
+  await closeBrowser(true);
+  process.exit(0);
+});
 
 const transport = new StdioServerTransport();
 await server.connect(transport);

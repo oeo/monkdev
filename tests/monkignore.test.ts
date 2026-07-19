@@ -11,8 +11,8 @@ test("recursive .gitignore (anchored) and .monkignore semantics", async () => {
 
   // root .gitignore: glob (non-anchored)
   await writeFile(`${D}/.gitignore`, "*.log\n");
-  // nested .gitignore: anchored pattern, must resolve relative to sub/
-  await writeFile(`${D}/sub/.gitignore`, "/local.txt\n");
+  // nested .gitignore: anchored pattern + negation overriding the parent glob
+  await writeFile(`${D}/sub/.gitignore`, "/local.txt\n!keep.log\n");
   // .monkignore: omitted from context, but visible (marked) in tree
   await writeFile(`${D}/.monkignore`, "vendor/\n");
 
@@ -20,6 +20,7 @@ test("recursive .gitignore (anchored) and .monkignore semantics", async () => {
   await writeFile(`${D}/app.log`, "noise");
   await writeFile(`${D}/sub/keep.ts`, "export const y = 2;");
   await writeFile(`${D}/sub/local.txt`, "anchored ignore");
+  await writeFile(`${D}/sub/keep.log`, "negation resurrects");
   await writeFile(`${D}/vendor/lib.ts`, "export const z = 3;");
 
   // --- tree ---
@@ -33,6 +34,8 @@ test("recursive .gitignore (anchored) and .monkignore semantics", async () => {
   expect(byPath("app.log")).toBeUndefined();
   // anchored nested gitignore now resolves correctly
   expect(byPath("sub/local.txt")).toBeUndefined();
+  // deeper !negation overrides the parent *.log glob, matching git
+  expect(byPath("sub/keep.log")).toBeDefined();
   // monkignore is visible in tree, but flagged
   expect(byPath("vendor/lib.ts")).toBeDefined();
   expect(byPath("vendor/lib.ts").monkOmit).toBe(true);

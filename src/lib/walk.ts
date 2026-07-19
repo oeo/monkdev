@@ -1,5 +1,5 @@
 import ignore from "ignore";
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, stat } from "node:fs/promises";
 import { join, relative } from "node:path";
 import { absoluteScore, scoreFile } from "./score";
 
@@ -121,21 +121,31 @@ async function loadMatcher(dir: string, file: string): Promise<Matcher | null> {
   try {
     const content = await readFile(join(dir, file), "utf8");
     return { base: dir, ig: ignore().add(content) };
-  } catch {
+  } catch (e: any) {
+    if (e.code !== "ENOENT") {
+      console.error(`monk: cannot read ${join(dir, file)}: ${e.message}`);
+    }
     return null;
   }
 }
 
+// Git semantics: matchers are ordered parent-first, and a deeper rule (including
+// a `!` negation) overrides a shallower one. Within one file the `ignore`
+// package already applies last-match-wins; across the chain we carry the state.
 function matches(chain: Matcher[], absPath: string, isDir: boolean): boolean {
+  let ignored = false;
   for (const m of chain) {
     const rel = relative(m.base, absPath);
     if (!rel || rel.startsWith("..")) continue;
-    if (m.ig.ignores(rel) || (isDir && m.ig.ignores(rel + "/"))) return true;
+    const file = m.ig.test(rel);
+    const dir = isDir ? m.ig.test(rel + "/") : file;
+    if (file.ignored || dir.ignored) ignored = true;
+    else if (file.unignored || dir.unignored) ignored = false;
   }
-  return false;
+  return ignored;
 }
 
-async function isBinary(file: ReturnType<typeof Bun.file>): Promise<boolean> {
+export async function isBinary(file: ReturnType<typeof Bun.file>): Promise<boolean> {
   const buffer = new Uint8Array(await file.slice(0, 4096).arrayBuffer());
   return buffer.includes(0);
 }
@@ -157,8 +167,9 @@ export async function collectFiles(targetDir: string): Promise<WalkResult> {
     let entries;
     try {
       entries = await readdir(dir, { withFileTypes: true });
-    } catch {
-      return; // unreadable directory
+    } catch (e: any) {
+      console.error(`monk: cannot read directory ${dir}: ${e.message}`);
+      return;
     }
 
     // PEP 405 sentinel: a directory holding pyvenv.cfg is a virtualenv under any name.
@@ -172,15 +183,29 @@ export async function collectFiles(targetDir: string): Promise<WalkResult> {
     for (const entry of entries) {
       const fullPath = join(dir, entry.name);
       const isDir = entry.isDirectory();
+      let isFile = entry.isFile();
 
-      if (matches(gc, fullPath, isDir)) continue; // fully omitted everywhere
+      // Symlinked files resolve to their target; symlinked directories stay
+      // skipped (cycle risk), matching git's blob-not-tree treatment.
+      if (entry.isSymbolicLink()) {
+        try {
+          isFile = (await stat(fullPath)).isFile();
+        } catch {
+          continue; // broken symlink
+        }
+      }
+
+      // Blacklist is checked apart from the gitignore chain so a user's `!`
+      // negation can never resurrect node_modules and friends.
+      if (matches([blacklist], fullPath, isDir)) continue;
+      if (matches(gc, fullPath, isDir)) continue;
       const monkIgnored = inheritedMonk || matches(mc, fullPath, isDir);
 
       if (isDir) {
         await walk(fullPath, gc, mc, monkIgnored);
         continue;
       }
-      if (!entry.isFile()) continue;
+      if (!isFile) continue;
 
       const file = Bun.file(fullPath);
       if (file.size > MAX_FILE_SIZE) {
@@ -195,13 +220,13 @@ export async function collectFiles(targetDir: string): Promise<WalkResult> {
         const loc = text.split("\n").length;
         const { raw, cap } = scoreFile(path, loc, file.size, text.slice(0, 300));
         found.push({ path, loc, bytes: file.size, text, score: 0, raw, cap, monkIgnored });
-      } catch {
-        // skip unreadable file
+      } catch (e: any) {
+        console.error(`monk: skipped unreadable file ${fullPath}: ${e.message}`);
       }
     }
   }
 
-  await walk(targetDir, [blacklist], [], false);
+  await walk(targetDir, [], [], false);
 
   // Map raw signal onto 1-10. The absolute scale saturates on large repos
   // (most src files land at 8+, min=10 matches nothing), so rank-percentile

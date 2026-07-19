@@ -1,4 +1,5 @@
 import { defineCommand } from "citty";
+import type { PuppeteerLifeCycleEvent, ScreenshotOptions } from "rebrowser-puppeteer-core";
 import { newStealthPage, closeBrowser } from "../lib/browser";
 
 export default defineCommand({
@@ -41,14 +42,14 @@ export default defineCommand({
 
     try {
       await page.goto(args.url, {
-        waitUntil: args.wait as any,
+        waitUntil: args.wait as PuppeteerLifeCycleEvent,
         timeout: Number(args.timeout),
       });
 
-      const target: any = args.selector ? await page.$(args.selector) : page;
+      const target = args.selector ? await page.$(args.selector) : page;
       if (!target) throw new Error(`Selector not found: ${args.selector}`);
 
-      const opts: any = { type: "png" };
+      const opts: ScreenshotOptions = { type: "png" };
       if (!args.selector && args.fullpage) opts.fullPage = true;
 
       if (args.out) {

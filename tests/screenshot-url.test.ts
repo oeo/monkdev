@@ -1,8 +1,18 @@
 import { test, expect } from "bun:test";
 import { $ } from "bun";
 import { existsSync, rmSync } from "fs";
+import { findChrome } from "../src/lib/browser";
 
-test("screenshot-url emits a base64 PNG of a rendered page", async () => {
+const hasChrome = (() => {
+  try {
+    findChrome();
+    return true;
+  } catch {
+    return false;
+  }
+})();
+
+test.skipIf(!hasChrome)("screenshot-url emits a base64 PNG of a rendered page", async () => {
   const { stdout, exitCode, stderr } =
     await $`./bin/monk screenshot-url https://example.com`.quiet();
 
@@ -15,7 +25,7 @@ test("screenshot-url emits a base64 PNG of a rendered page", async () => {
   expect(stdout.toString().trim().startsWith("iVBORw0KGgo")).toBe(true);
 }, 60000);
 
-test("screenshot-url --out writes a PNG file and prints its path", async () => {
+test.skipIf(!hasChrome)("screenshot-url --out writes a PNG file and prints its path", async () => {
   const out = `/tmp/monk-screenshot-${process.pid}.png`;
   try {
     const { stdout, exitCode } =

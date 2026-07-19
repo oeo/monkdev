@@ -1,5 +1,5 @@
 import { defineCommand } from "citty";
-import { resolve } from "path";
+import { isBinary } from "../lib/walk";
 
 export default defineCommand({
   meta: {
@@ -25,8 +25,9 @@ export default defineCommand({
       args.files.split(",").forEach((f) => targetFiles.add(f.trim()));
     }
 
-    const rawArgs = (args as any)._ || [];
-    rawArgs.forEach((f: string) => targetFiles.add(f));
+    // citty exposes unnamed positionals as `_` on the parsed args.
+    const rawArgs = (args as { _?: string[] })._ ?? [];
+    rawArgs.forEach((f) => targetFiles.add(f));
 
     if (targetFiles.size === 0) {
       throw new Error("No files provided.");
@@ -40,24 +41,13 @@ export default defineCommand({
         continue;
       }
 
-      // Check if binary by looking for null bytes in the first 4KB
-      let isBinary = false;
       try {
-        const slice = file.slice(0, 4096);
-        const buffer = new Uint8Array(await slice.arrayBuffer());
-        for (let i = 0; i < buffer.length; i++) {
-          if (buffer[i] === 0) {
-            isBinary = true;
-            break;
-          }
+        if (await isBinary(file)) {
+          console.log(`catfile ${filePath} (ERROR_FILE_NON_TEXT)`);
+          continue;
         }
       } catch (e) {
         console.log(`catfile ${filePath} (ERROR_FILE_UNREADABLE)`);
-        continue;
-      }
-
-      if (isBinary) {
-        console.log(`catfile ${filePath} (ERROR_FILE_NON_TEXT)`);
         continue;
       }
 
@@ -76,7 +66,7 @@ export default defineCommand({
       }
 
       if (args["stats-only"]) {
-        const tokens = Math.ceil(file.size / 4);
+        const tokens = Math.ceil(text.length / 4);
         console.log(`catfile ${filePath} (${lines.length} LOC, ~${tokens} tokens)`);
         continue;
       }

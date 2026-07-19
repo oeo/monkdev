@@ -23,6 +23,7 @@ const ENTRY_STEMS = new Set(["main", "lib", "mod", "app", "cli", "server", "__in
 const CODE_EXTS = new Set([
   "ts", "tsx", "js", "jsx", "mjs", "rs", "py", "go", "c", "cc", "cpp", "h", "hpp",
   "ino", "lua", "luau", "java", "kt", "swift", "rb", "php", "zig", "scad", "sh",
+  "vue", "svelte", "dart",
 ]);
 const DOC_EXTS = new Set(["md", "mdx", "rst"]);
 const DATA_EXTS = new Set(["json", "yaml", "yml", "toml", "xml", "ini", "hbs", "html", "css"]);
