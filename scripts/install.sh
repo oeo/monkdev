@@ -31,7 +31,11 @@ fi
 
 if [ -d "$DIR/.git" ]; then
   echo "Updating monkdev at $DIR"
-  git -C "$DIR" pull --ff-only
+  git -C "$DIR" pull --ff-only || {
+    echo "error: $DIR has diverged from origin and cannot fast-forward." >&2
+    echo "Resolve manually: cd $DIR && git status" >&2
+    exit 1
+  }
 else
   echo "Cloning monkdev to $DIR"
   git clone "$REPO" "$DIR"
@@ -39,20 +43,25 @@ fi
 
 (cd "$DIR" && bun install)
 
-# Register MCP server
+# Register MCP server. Claude Code and OpenCode may coexist; handle both.
+REGISTERED=0
 if command -v claude >/dev/null; then
   claude mcp remove monk -s user >/dev/null 2>&1 || true
   claude mcp add monk -s user -- bun "$DIR/src/mcp.ts"
   echo "Registered MCP server 'monk' with Claude Code."
-elif [ "$IS_OPENCODE" -eq 1 ]; then
+  REGISTERED=1
+fi
+if [ "$IS_OPENCODE" -eq 1 ]; then
   cat <<EOF
 OpenCode detected. Add/edit the MCP server in ~/.config/opencode/opencode.json:
   "monk": { "type": "local", "command": ["bun", "$DIR/src/mcp.ts"], "enabled": true }
 EOF
-else
+  REGISTERED=1
+fi
+if [ "$REGISTERED" -eq 0 ]; then
   cat <<EOF
 Add the MCP server to your agent config manually:
-  "monk": { "type": "local", "command": ["bun", "$DIR/src/mcp.ts"], "timeout": 60000 }
+  "monk": { "command": "bun", "args": ["$DIR/src/mcp.ts"] }
 EOF
 fi
 
@@ -63,6 +72,12 @@ if [ ! -f "$GLOBAL" ]; then
   { echo "$BEGIN"; cat "$DIR/CLAUDE.md"; echo "$END"; } > "$GLOBAL"
   echo "Created $GLOBAL with monk directives."
 elif grep -qF "$BEGIN" "$GLOBAL"; then
+  if ! grep -qF "$END" "$GLOBAL"; then
+    echo "error: $GLOBAL has the BEGIN marker but no END marker." >&2
+    echo "Upgrading would delete everything after BEGIN. Restore the END marker first:" >&2
+    echo "  $END" >&2
+    exit 1
+  fi
   awk -v dir="$DIR" -v begin="$BEGIN" -v end="$END" '
     $0 == begin { print; while ((getline line < (dir "/CLAUDE.md")) > 0) print line; skip = 1; next }
     $0 == end { skip = 0 }
@@ -79,5 +94,6 @@ cat <<EOF
 
 Done. Restart your agent session, then verify the monk_tree tool responds.
 Optional: brave-search needs BRAVE_API_KEY in $DIR/.env (copy .env.example).
-Note: the first fetch-url / screenshot-url call downloads a headless Chromium (~200MB).
+Note: fetch-url / screenshot-url use your installed Google Chrome or Chromium
+(auto-detected; set MONK_CHROME to override). Nothing is downloaded.
 EOF

@@ -54,16 +54,16 @@ directives** (behavior).
 - Upgrade: `git pull` in the existing checkout.
 - `bun install` (Bun required — https://bun.sh).
 
-**2. Register the MCP server** — entrypoint `src/mcp.ts`, run with `bun`. Use an
-absolute path and a generous (~60s) timeout for the Chromium cold-start.
+**2. Register the MCP server** — entrypoint `src/mcp.ts`, run with `bun` and an
+absolute path.
 - Claude Code: `claude mcp add monk -s user -- bun "$(pwd)/src/mcp.ts"`
 - OpenCode — add to `~/.config/opencode/opencode.json` under `mcp`:
   ```json
   "monk": { "type": "local", "command": ["bun", "<abs>/src/mcp.ts"], "enabled": true }
   ```
-- Claude Desktop — add to your MCP config:
+- Claude Desktop — add to `claude_desktop_config.json` under `mcpServers`:
   ```json
-  "monk": { "type": "local", "command": ["bun", "<abs>/src/mcp.ts"], "timeout": 60000 }
+  "monk": { "command": "bun", "args": ["<abs>/src/mcp.ts"] }
   ```
 
 **3. Install the monk directives** — the directives are this repo's
@@ -83,7 +83,8 @@ Wrap them in markers so upgrades replace cleanly:
 - Optional: `brave-search` needs `BRAVE_API_KEY` in `.env` (copy `.env.example`);
   every other tool works without a key.
 - `fetch-url` / `screenshot-url` require Google Chrome or Chromium installed
-  (auto-detected via common paths). No bundled browser download needed.
+  (auto-detected via common paths; set `MONK_CHROME` to the binary path to
+  override). No bundled browser download needed.
 - Restart the agent session, then verify the `monk_tree` tool responds.
 
 </details>
