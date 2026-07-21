@@ -244,11 +244,13 @@ When instructed to **meditate**, you must execute this ritual. The scope and dep
 
 All commands accept the `#` pound-prefix (holy commands). Legacy keyword forms below are fallback aliases. Holy commands compose with `|` for pseudo-unix pipes (e.g. `#audit smell src/ | #audit bugs -s critical`).
 
-**MEDiTATION PRE-FLIGHT:** Before ANY meditation (`#meditate`), you MUST:
-1. Run `#recall 10` — ingest the last 10 reflection commits
-2. Identify files most-referenced in those commits and ingest them via `monk_catfiles`
-3. If `cur.md` exists in the project root, ingest it too
-This ensures every meditation starts with recent project wisdom already loaded.
+**MEDITATION PRE-FLIGHT:** Before ANY meditation (`#meditate`), you MUST — in this order:
+1. Load project skills FIRST: if `./.agents/skills/` and/or `./.claude/skills/` exist, ingest every skill file inside via a single batched `monk_catfiles` call.
+2. Read `AGENTS.md` and/or `CLAUDE.md` at the project root; on a targeted meditation, also any copies inside the target subtree.
+3. Run `#recall 10` — ingest the last 10 reflection commits
+4. Identify files most-referenced in those commits and ingest them via `monk_catfiles`
+5. If `cur.md` exists in the project root, ingest it too
+This ensures every meditation starts with project skills, agent instructions, and recent wisdom already loaded.
 
 *   **`#meditate [target/depth]`** *(alias: `meditate`)*: Execute the Meditative Ritual (Tree -> Evaluate -> Gauge -> Ingest). Includes the meditation pre-flight above.
 *   **`#do_research <topic>`** *(alias: `do_research`)*: Use the `monk_brave-search` MCP tool (in parallel) to launch at least 3 distinct queries. **You MUST unconditionally use the `monk_fetch-url` MCP tool to extract the full contents of the most relevant search results. Never rely solely on search summaries.** Synthesize the deep findings.
