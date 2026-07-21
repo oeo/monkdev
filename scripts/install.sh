@@ -18,15 +18,13 @@ if [ -f "$HOME/.config/opencode/opencode.json" ]; then
   IS_OPENCODE=1
 fi
 
-# Default global prompt path depends on platform
-if [ -z "${MONK_GLOBAL_PROMPT:-}" ]; then
-  if [ "$IS_OPENCODE" -eq 1 ]; then
-    GLOBAL="$HOME/.config/opencode/AGENTS.md"
-  else
-    GLOBAL="$HOME/.claude/CLAUDE.md"
-  fi
+# Global prompt targets: the explicit override, or every detected platform.
+# Claude Code and OpenCode may coexist; both must receive the directives.
+if [ -n "${MONK_GLOBAL_PROMPT:-}" ]; then
+  GLOBALS=("$MONK_GLOBAL_PROMPT")
 else
-  GLOBAL="$MONK_GLOBAL_PROMPT"
+  GLOBALS=("$HOME/.claude/CLAUDE.md")
+  [ "$IS_OPENCODE" -eq 1 ] && GLOBALS+=("$HOME/.config/opencode/AGENTS.md")
 fi
 
 if [ -d "$DIR/.git" ]; then
@@ -65,30 +63,35 @@ Add the MCP server to your agent config manually:
 EOF
 fi
 
-# Merge the monk directives into the global prompt between markers, never
+# Merge the monk directives into each global prompt between markers, never
 # touching operator content outside them.
-mkdir -p "$(dirname "$GLOBAL")"
-if [ ! -f "$GLOBAL" ]; then
-  { echo "$BEGIN"; cat "$DIR/CLAUDE.md"; echo "$END"; } > "$GLOBAL"
-  echo "Created $GLOBAL with monk directives."
-elif grep -qF "$BEGIN" "$GLOBAL"; then
-  if ! grep -qF "$END" "$GLOBAL"; then
-    echo "error: $GLOBAL has the BEGIN marker but no END marker." >&2
-    echo "Upgrading would delete everything after BEGIN. Restore the END marker first:" >&2
-    echo "  $END" >&2
-    exit 1
+merge_directives() {
+  local target="$1"
+  mkdir -p "$(dirname "$target")"
+  if [ ! -f "$target" ]; then
+    { echo "$BEGIN"; cat "$DIR/CLAUDE.md"; echo "$END"; } > "$target"
+    echo "Created $target with monk directives."
+  elif grep -qF "$BEGIN" "$target"; then
+    if ! grep -qF "$END" "$target"; then
+      echo "error: $target has the BEGIN marker but no END marker." >&2
+      echo "Upgrading would delete everything after BEGIN. Restore the END marker first:" >&2
+      echo "  $END" >&2
+      exit 1
+    fi
+    awk -v dir="$DIR" -v begin="$BEGIN" -v end="$END" '
+      $0 == begin { print; while ((getline line < (dir "/CLAUDE.md")) > 0) print line; skip = 1; next }
+      $0 == end { skip = 0 }
+      !skip { print }
+    ' "$target" > "$target.tmp"
+    mv "$target.tmp" "$target"
+    echo "Upgraded monk directives in $target."
+  else
+    { echo ""; echo "$BEGIN"; cat "$DIR/CLAUDE.md"; echo "$END"; } >> "$target"
+    echo "Appended monk directives to $target."
   fi
-  awk -v dir="$DIR" -v begin="$BEGIN" -v end="$END" '
-    $0 == begin { print; while ((getline line < (dir "/CLAUDE.md")) > 0) print line; skip = 1; next }
-    $0 == end { skip = 0 }
-    !skip { print }
-  ' "$GLOBAL" > "$GLOBAL.tmp"
-  mv "$GLOBAL.tmp" "$GLOBAL"
-  echo "Upgraded monk directives in $GLOBAL."
-else
-  { echo ""; echo "$BEGIN"; cat "$DIR/CLAUDE.md"; echo "$END"; } >> "$GLOBAL"
-  echo "Appended monk directives to $GLOBAL."
-fi
+}
+
+for g in "${GLOBALS[@]}"; do merge_directives "$g"; done
 
 cat <<EOF
 
