@@ -20,6 +20,10 @@ const MANIFESTS = new Set([
 
 const ENTRY_STEMS = new Set(["main", "lib", "mod", "app", "cli", "server", "__init__"]);
 
+// Agent instruction files: a root copy governs the whole repo (near-core),
+// a nested copy only steers its own subtree.
+const AGENT_DOCS = new Set(["agents", "claude", "gemini"]);
+
 const CODE_EXTS = new Set([
   "ts", "tsx", "js", "jsx", "mjs", "rs", "py", "go", "c", "cc", "cpp", "h", "hpp",
   "ino", "lua", "luau", "java", "kt", "swift", "rb", "php", "zig", "scad", "sh",
@@ -68,6 +72,7 @@ export function scoreFile(path: string, loc: number, bytes = 0, head = ""): Scor
   else if (DATA_EXTS.has(ext)) s += 4;
 
   if (MANIFESTS.has(base)) s += 25;
+  else if (AGENT_DOCS.has(stem) && DOC_EXTS.has(ext)) s += dirs.length === 0 ? 34 : 20;
   // The root README routes the repo; a nested or vendored README is a plain doc.
   else if (stem === "readme" && dirs.length === 0) s += 12;
   // Entry-point names only signal architecture when the file has substance.
