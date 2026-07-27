@@ -28,3 +28,23 @@ test("tree ranks files by importance, source above tests", async () => {
   const idx = (p: string) => data.findIndex((f: any) => f.path === p);
   expect(idx("src/cli.ts")).toBeLessThan(idx("tests/tree.test.ts"));
 });
+
+test("tree --min filters and --max-tokens packs with exclusion note", async () => {
+  const { stdout: fullOut } = await $`./bin/monk tree --json`.quiet();
+  const full = JSON.parse(fullOut.toString());
+  const top = Math.max(...full.map((f: any) => f.score));
+
+  const { stdout: minOut } = await $`./bin/monk tree --json --min ${top}`.quiet();
+  const filtered = JSON.parse(minOut.toString());
+  expect(filtered.length).toBeGreaterThan(0);
+  expect(filtered.length).toBeLessThan(full.length);
+  expect(filtered.every((f: any) => f.score >= top)).toBe(true);
+
+  const { stdout: packOut } = await $`./bin/monk tree --max-tokens 50`.quiet();
+  expect(packOut.toString()).toContain("excluded");
+});
+
+test("tree prints the cumulative histogram footer", async () => {
+  const { stdout } = await $`./bin/monk tree`.quiet();
+  expect(stdout.toString()).toContain("min | files | ~tokens (cumulative)");
+});

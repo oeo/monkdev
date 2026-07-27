@@ -43,3 +43,34 @@ test("deps parses package.json, Cargo.toml, and pyproject.toml correctly", async
     await rm("test_deps_dir", { recursive: true, force: true });
   }
 });
+
+test("deps parses go.mod, requirements.txt, and poetry sections", async () => {
+  const D = "test_deps_dir2";
+  await mkdir(D, { recursive: true });
+
+  await writeFile(
+    `${D}/go.mod`,
+    "module example.com/x\n\nrequire (\n\tgithub.com/a/b v1.0.0\n\t// indirect comment\n)\n\nrequire github.com/c/d v2.0.0\n",
+  );
+  await writeFile(`${D}/requirements.txt`, "requests==2.0\n# comment\nflask>=1.0\n-r other.txt\n");
+  await writeFile(`${D}/pyproject.toml`, '[tool.poetry.dependencies]\npython = "^3.11"\ndjango = "^4.0"\n');
+
+  try {
+    const { stdout } = await $`./bin/monk deps ${D} --json`.quiet();
+    const res = JSON.parse(stdout.toString());
+
+    const go = res.find((r: any) => r.type === "Go (go.mod)");
+    expect(go.deps).toContain("github.com/a/b"); // require ( ) block
+    expect(go.deps).toContain("github.com/c/d"); // single-line require
+    expect(go.deps.some((d: string) => d.startsWith("//"))).toBe(false);
+
+    const req = res.find((r: any) => r.type === "Python (requirements.txt)");
+    expect(req.deps).toEqual(["requests", "flask"]);
+
+    const py = res.find((r: any) => r.type === "Python (pyproject.toml)");
+    expect(py.deps).toContain("django");
+    expect(py.deps).not.toContain("python");
+  } finally {
+    await rm(D, { recursive: true, force: true });
+  }
+});
