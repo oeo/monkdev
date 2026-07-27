@@ -17,14 +17,19 @@ IS_OPENCODE=0
 if [ -f "$HOME/.config/opencode/opencode.json" ]; then
   IS_OPENCODE=1
 fi
+IS_PI=0
+if [ -d "$HOME/.pi/agent" ] || command -v pi >/dev/null; then
+  IS_PI=1
+fi
 
 # Global prompt targets: the explicit override, or every detected platform.
-# Claude Code and OpenCode may coexist; both must receive the directives.
+# Platforms may coexist; every detected one must receive the directives.
 if [ -n "${MONK_GLOBAL_PROMPT:-}" ]; then
   GLOBALS=("$MONK_GLOBAL_PROMPT")
 else
   GLOBALS=("$HOME/.claude/CLAUDE.md")
   [ "$IS_OPENCODE" -eq 1 ] && GLOBALS+=("$HOME/.config/opencode/AGENTS.md")
+  [ "$IS_PI" -eq 1 ] && GLOBALS+=("$HOME/.pi/agent/AGENTS.md")
 fi
 
 if [ -d "$DIR/.git" ]; then
@@ -41,7 +46,7 @@ fi
 
 (cd "$DIR" && bun install)
 
-# Register MCP server. Claude Code and OpenCode may coexist; handle both.
+# Register tools. Platforms may coexist; handle every detected one.
 REGISTERED=0
 if command -v claude >/dev/null; then
   claude mcp remove monk -s user >/dev/null 2>&1 || true
@@ -54,6 +59,34 @@ if [ "$IS_OPENCODE" -eq 1 ]; then
 OpenCode detected. Add/edit the MCP server in ~/.config/opencode/opencode.json:
   "monk": { "type": "local", "command": ["bun", "$DIR/src/mcp.ts"], "enabled": true }
 EOF
+  REGISTERED=1
+fi
+if [ "$IS_PI" -eq 1 ]; then
+  # pi has no MCP; expose the toolkit as a CLI skill instead.
+  mkdir -p "$HOME/.pi/agent/skills/monk"
+  cat > "$HOME/.pi/agent/skills/monk/SKILL.md" <<EOF
+---
+name: monk
+description: Token-aware codebase ingestion, symbol search, dependency mapping, and web browsing via the monk CLI. Use for mapping architecture, packing directories, batch file reads, outlines, dependency graphs, symbol definitions, web search, and page fetch or screenshot.
+---
+
+Run monk as a CLI (requires bun):
+
+    $DIR/bin/monk list             # all tools
+    $DIR/bin/monk describe <tool>  # a tool's args
+    $DIR/bin/monk tree [path]      # map architecture by importance
+    $DIR/bin/monk context <dir>    # pack a directory into XML
+    $DIR/bin/monk catfiles <files> # batch-read files with headers
+    $DIR/bin/monk outline <files>  # structural signatures only
+    $DIR/bin/monk deps             # dependency graph
+    $DIR/bin/monk symbol <name>    # find symbol definitions
+    $DIR/bin/monk brave-search <q> # web search (needs BRAVE_API_KEY in $DIR/.env)
+    $DIR/bin/monk fetch-url <url>  # render and extract a page
+    $DIR/bin/monk screenshot-url <url> --out <file>
+
+Prefer catfiles over cat or head for code, fetch-url over curl for pages.
+EOF
+  echo "Wrote pi skill to ~/.pi/agent/skills/monk/SKILL.md (pi has no MCP; monk runs as CLI)."
   REGISTERED=1
 fi
 if [ "$REGISTERED" -eq 0 ]; then
@@ -95,7 +128,8 @@ for g in "${GLOBALS[@]}"; do merge_directives "$g"; done
 
 cat <<EOF
 
-Done. Restart your agent session, then verify the monk_tree tool responds.
+Done. Restart your agent session, then verify the monk_tree tool responds
+(pi: run $DIR/bin/monk tree instead).
 Optional: brave-search needs BRAVE_API_KEY in $DIR/.env (copy .env.example).
 Note: fetch-url / screenshot-url use your installed Google Chrome or Chromium
 (auto-detected; set MONK_CHROME to override). Nothing is downloaded.

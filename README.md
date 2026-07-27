@@ -35,13 +35,23 @@ curl -fsSL https://raw.githubusercontent.com/oeo/monkdev/master/scripts/install.
 One line installs or upgrades everything: clones to `~/.monkdev` (override with
 `MONK_DIR`), runs `bun install`, registers the MCP server, and merges the monk
 directives into your global agent prompt between markers — never touching your
-own content outside them. Auto-detects **Claude Code** and **OpenCode**; for
-OpenCode it writes to `~/.config/opencode/AGENTS.md` and prints the MCP config
-snippet. Re-run the same line to upgrade.
-Requires [Bun](https://bun.sh) and git.
+own content outside them. Auto-detects **Claude Code**, **OpenCode**, and
+**pi**. For OpenCode it writes to `~/.config/opencode/AGENTS.md` and prints the
+MCP config snippet. For pi it writes to `~/.pi/agent/AGENTS.md` and installs a
+`monk` skill wrapping the CLI, since pi has no MCP. Re-run the same line to
+upgrade. Requires [Bun](https://bun.sh) and git.
 
 > The script edits your global agent prompt. Skim
 > [`scripts/install.sh`](scripts/install.sh) before piping it to bash.
+
+On any other scaffold, tell your agent:
+
+```
+Fetch https://raw.githubusercontent.com/oeo/monkdev/master/INSTALL.md and follow it.
+```
+
+[`INSTALL.md`](INSTALL.md) carries the full per-scaffold table and the exact
+marker-merge contract, so any capable agent can perform the install.
 
 <details>
 <summary><b>Manual install (OpenCode, Claude Desktop, or no curl-pipe)</b></summary>
@@ -65,12 +75,15 @@ absolute path.
   ```json
   "monk": { "command": "bun", "args": ["<abs>/src/mcp.ts"] }
   ```
+- pi — no MCP support; write a skill at `~/.pi/agent/skills/monk/SKILL.md`
+  documenting the CLI `<abs>/bin/monk` (the installer generates this).
 
 **3. Install the monk directives** — the directives are this repo's
 [`CLAUDE.md`](CLAUDE.md); they belong in your **global** prompt so the
 discipline applies everywhere:
 - Claude Code: `~/.claude/CLAUDE.md`
 - OpenCode: `~/.config/opencode/AGENTS.md`
+- pi: `~/.pi/agent/AGENTS.md`
 
 Wrap them in markers so upgrades replace cleanly:
   ```
