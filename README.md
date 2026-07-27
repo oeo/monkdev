@@ -6,106 +6,52 @@
 
 > A coding methodology for LLM agents. Measure. Prove. Cut.
 
-Monkdev is a toolkit plus a persona. The **toolkit** (an MCP server) gives your
-agent token-aware codebase ingestion, cross-language symbol search, dependency
-mapping, and stealth web browsing. The **persona** ([CLAUDE.md](CLAUDE.md))
-constrains behavior: simple over clever, root-cause fixes over band-aids, no
-performative code, no wasted tokens. The monk serves the architecture, not the ego.
+Monkdev is two things. A toolkit, an MCP server that gives your agent
+token-aware codebase ingestion, symbol search, dependency mapping, and stealth
+web browsing. And a persona, [CLAUDE.md](CLAUDE.md), which keeps the agent
+simple, honest, and frugal with tokens. The monk serves the architecture, not
+the ego.
 
-## Installation
+## Install
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/oeo/monkdev/master/scripts/install.sh | bash
 ```
 
-One line installs or upgrades everything: clones to `~/.monkdev` (override with
-`MONK_DIR`), runs `bun install`, registers the MCP server, and merges the monk
-directives into your global agent prompt between markers — never touching your
-own content outside them. Auto-detects **Claude Code**, **OpenCode**, and
-**pi**. For OpenCode it writes to `~/.config/opencode/AGENTS.md` and prints the
-MCP config snippet. For pi it writes to `~/.pi/agent/AGENTS.md` and installs a
-`monk` skill wrapping the CLI, since pi has no MCP. Re-run the same line to
-upgrade. Requires [Bun](https://bun.sh) and git.
+This clones to `~/.monkdev`, runs `bun install`, registers the MCP server, and
+merges the monk directives into your global agent prompt between markers. It
+never touches your own content outside them. Works with Claude Code, OpenCode,
+and pi. Run the same line again to upgrade. Needs [Bun](https://bun.sh) and git.
 
-> The script edits your global agent prompt. Skim
-> [`scripts/install.sh`](scripts/install.sh) before piping it to bash.
+The script edits your global agent prompt, so skim
+[`scripts/install.sh`](scripts/install.sh) first.
 
-On any other scaffold, tell your agent:
+Prefer to install by hand, or on another scaffold? Follow
+[`INSTALL.md`](INSTALL.md), or tell your agent:
 
 ```
 Fetch https://raw.githubusercontent.com/oeo/monkdev/master/INSTALL.md and follow it.
 ```
 
-[`INSTALL.md`](INSTALL.md) carries the full per-scaffold table and the exact
-marker-merge contract, so any capable agent can perform the install.
+Optional setup: `brave-search` needs `BRAVE_API_KEY` in `.env`. `fetch-url` and
+`screenshot-url` need Chrome or Chromium installed (set `MONK_CHROME` to
+override detection). Everything else works out of the box.
 
-<details>
-<summary><b>Manual install (OpenCode, Claude Desktop, or no curl-pipe)</b></summary>
+## Tools
 
-A full install is two parts: the **MCP server** (tools) and the **monk
-directives** (behavior).
-
-**1. Get the code**
-- Fresh: `git clone https://github.com/oeo/monkdev.git && cd monkdev`
-- Upgrade: `git pull` in the existing checkout.
-- `bun install` (Bun required — https://bun.sh).
-
-**2. Register the MCP server** — entrypoint `src/mcp.ts`, run with `bun` and an
-absolute path.
-- Claude Code: `claude mcp add monk -s user -- bun "$(pwd)/src/mcp.ts"`
-- OpenCode — add to `~/.config/opencode/opencode.json` under `mcp`:
-  ```json
-  "monk": { "type": "local", "command": ["bun", "<abs>/src/mcp.ts"], "enabled": true }
-  ```
-- Claude Desktop — add to `claude_desktop_config.json` under `mcpServers`:
-  ```json
-  "monk": { "command": "bun", "args": ["<abs>/src/mcp.ts"] }
-  ```
-- pi — no MCP support; write a skill at `~/.pi/agent/skills/monk/SKILL.md`
-  documenting the CLI `<abs>/bin/monk` (the installer generates this).
-
-**3. Install the monk directives** — the directives are this repo's
-[`CLAUDE.md`](CLAUDE.md); they belong in your **global** prompt so the
-discipline applies everywhere:
-- Claude Code: `~/.claude/CLAUDE.md`
-- OpenCode: `~/.config/opencode/AGENTS.md`
-- pi: `~/.pi/agent/AGENTS.md`
-
-Wrap them in markers so upgrades replace cleanly:
-  ```
-  <!-- BEGIN MONK DIRECTIVES -->
-  ...contents of CLAUDE.md...
-  <!-- END MONK DIRECTIVES -->
-  ```
-
-**4. Configure & verify**
-- Optional: `brave-search` needs `BRAVE_API_KEY` in `.env` (copy `.env.example`);
-  every other tool works without a key.
-- `fetch-url` / `screenshot-url` require Google Chrome or Chromium installed
-  (auto-detected via common paths; set `MONK_CHROME` to the binary path to
-  override). No bundled browser download needed.
-- Restart the agent session, then verify the `monk_tree` tool responds.
-
-</details>
-
-## The Arsenal
-
-| Tool | Description |
+| Tool | What it does |
 |---|---|
-| `tree` | Maps project architecture cleanly, ranked by heuristic importance with per-file token estimates and a cumulative per-threshold histogram. Honors recursive ignores, drops binaries; `--max-tokens N` keeps only the top-scored files fitting the budget. |
-| `context` | Packs entire directories into XML-structured blocks for deep AI ingestion. `--min` / `--max-tokens` select by importance or token budget; `--stats-only` reports the largest `min` that fits a context window. Output over ~10k tokens is auto-written to a temp file (`--out` to control the path). Pipes files through [rtk](https://www.rtk-ai.app/) `read -l minimal` when installed (`--raw` to skip). |
-| `catfiles` | Safely reads batches of files with path and LOC headers; refuses files over 5000 lines; `--stats-only` reports LOC and token estimates. |
-| `outline` | Extracts structural signatures (classes, functions) while dropping token-heavy bodies. |
-| `deps` | Maps dependency graphs across multi-language ecosystems (Node, Rust, Go, Python). |
-| `symbol` | Finds cross-language definitions instantly. |
-| `brave-search` | Searches the web via the Brave Search API. |
-| `fetch-url` | Renders and extracts web pages through your installed Chrome/Chromium, driven by rebrowser-puppeteer-core's stealth patches to bypass bot protection. Prunes nav/footer/script noise (`--raw` to skip) and caps output at `--max-tokens` (default 10000). |
-| `screenshot-url` | Captures a PNG of a rendered page through the same stealth Chrome pipeline for visual verification. Supports `--selector`, `--fullpage`, and `--out <file>` (base64 otherwise). |
-| `list` / `describe` | Self-documents the toolkit from the CLI (hidden from the MCP surface). |
+| `tree` | Maps the project, ranked by importance, with token estimates. |
+| `context` | Packs directories into XML for deep ingestion. Filter by `--min` score or `--max-tokens` budget. |
+| `catfiles` | Reads batches of files with path and LOC headers. |
+| `outline` | Extracts classes and functions, drops the bodies. |
+| `deps` | Maps dependency graphs (Node, Rust, Go, Python). |
+| `symbol` | Finds definitions across languages. |
+| `brave-search` | Searches the web via the Brave API. |
+| `fetch-url` | Renders and extracts web pages through stealth Chrome. |
+| `screenshot-url` | Captures a PNG of a rendered page. |
 
-## Usage
-
-The tools are self-documenting from the CLI:
+The tools document themselves from the CLI:
 
 ```bash
 ./bin/monk list             # list all tools
@@ -115,60 +61,41 @@ The tools are self-documenting from the CLI:
 
 ## Directives
 
-Directives are the monk's verbs — natural-language keywords the operator types to
-drive the workflow. The agent recognizes each and runs the matching ritual with
-the toolkit. Use them to scaffold your own sessions. All commands use the `#`
-pound-prefix (holy commands); legacy keyword forms below are fallback aliases.
-Holy commands compose with `|` for pseudo-unix pipes.
+Directives are keywords you type to drive the workflow. All take the `#`
+prefix and compose with `|` for pipes.
 
 | Directive | What it does |
 |---|---|
-| `#meditate` | Ingest context before acting — `tree` to map, then read the core files. Always does `#recall 10` + cur.md first. |
-| `#meditate <topic>` | Targeted ingestion: focus only on components relevant to the topic. |
-| `#meditate deeply` | Holistic ingestion: pack whole directories via `context`, dependencies included. |
-| `#meditate <N>` | Threshold ingestion: exactly the files scoring >= N (1-10); standard ≈ 8, deep ≈ 5. |
-| `#do_research <topic>` | Parallel Brave searches + page reads, then synthesize. |
-| `#update_docs` | Align the README and co-located docs with the current code truth. |
-| `#reflect` | Record session wisdom as a git commit (`Completed` / `Decisions` / `Next` / `Patterns`). |
-| `#recall [N\|topic\|all]` | Search past reflection commits; default lists all, N shows last N with bodies, topic filters. |
-| `#version` | Report the installed monk toolkit version. |
-| `#spawn N <desc>` | Spawn N sub-agents that meditate first, then execute scoped tasks in parallel (default 1). |
-| `#cur` | Read cur.md and summarize unfinished items with a priority recommendation. |
-| `#cur done` | Scan cur.md for completed items, check them off, and move to `## finished`. |
-| `#versus [N]` | Spawn N adversarial monk sub-agents (default 5) to find flaws in your implementation plan. |
-| `#audit <cmd>` | Codebase under oath: gate, debt, smell, split, sec, perf, bugs, mod, arch, all. Pipeable. |
-| `#plan` | Toggle plan mode: comprehensive plan before edits, no file changes without consent. Repeat to deepen. |
-| `#dev` | Detect and start the local dev environment (skills, justfile, Makefile, npm scripts, docker, docs). |
-| `#help` | Print all monk commands as a formatted unix-style man page with the monk codename. |
+| `#meditate [topic\|deeply\|N]` | Ingest context before acting. Target a topic, go deep, or set an importance threshold. |
+| `#do_research <topic>` | Parallel web searches plus page reads, then synthesize. |
+| `#update_docs` | Align docs with the current code truth. |
+| `#reflect` | Record session wisdom as a git commit. |
+| `#recall [N\|topic\|all]` | Search past reflection commits. |
+| `#spawn N <desc>` | Run N sub-agents on scoped tasks in parallel. |
+| `#cur` / `#cur done` | Read or update the cur.md task list. |
+| `#versus [N]` | N adversarial sub-agents attack your plan before you build. |
+| `#audit <cmd>` | Codebase under oath: gate, debt, smell, sec, perf, bugs, arch, all. |
+| `#plan` | Plan mode. No edits without consent. Repeat to deepen. |
+| `#dev` | Detect and start the local dev environment. |
+| `#version` | Report the installed toolkit version. |
+| `#help` | Print all commands as a man page. |
 
-The full ritual semantics (meditation depths, the Measure–Prove–Cut protocol,
-commit formats) live in [CLAUDE.md](CLAUDE.md) under *Explicit Command
-Directives* — the agent reads them from your global prompt after install.
+Full ritual semantics live in [CLAUDE.md](CLAUDE.md) under *Explicit Command
+Directives*.
 
 ## Ignore Rules
 
-`tree` and `context` walk recursively, reading `.gitignore` at every directory
-level (rules inherit downward and resolve relative to their own directory).
+`tree` and `context` honor `.gitignore` at every directory level. A built-in
+blacklist drops what is never source: package stores, build output, caches,
+lockfiles, minified artifacts, and files over 500KB.
 
-A built-in blacklist (`MONK_BLACKLIST` in `src/lib/walk.ts`) hard-omits what is
-never source: package stores (`node_modules`, `site-packages`, `Pods`, …),
-build output (`dist`, `target`, `zig-out`, …), tool caches (`.pytest_cache`,
-`.gradle`, `.terraform`, …), lockfiles, and derived artifacts (`*.min.js`,
-sourcemaps, `*.tsbuildinfo`). Any directory holding a `pyvenv.cfg` is skipped
-as a virtualenv regardless of its name. Files over 500KB are skipped and
-surfaced as a warning; byte-identical duplicate files keep only their
-best-ranked copy's score, and `context` packs the body once, stubbing the
-copies with `duplicateOf`.
-
-A `.monkignore` file (same syntax, also recursive) marks paths the monk should
-not ingest during general meditation. Such paths are **dropped from `context`**
-but still **listed by `tree`** with a `(monk-omit)` tag. This keeps broad
-meditation focused while letting the monk target a fogged folder explicitly
-(e.g. `monk context vendor`).
+A `.monkignore` file (same syntax) fogs paths from general meditation. `context`
+drops them, `tree` still lists them with a `(monk-omit)` tag, and you can always
+target a fogged folder explicitly.
 
 ## Extending
 
-Tools are built using `citty`. To add a new tool:
+Tools are built with `citty`. To add one:
 1. Create the command in `src/tools/`.
 2. Export it in `src/tools/index.ts`.
 3. Write an integration test in `tests/` (enforced by `conventions.test.ts`).
