@@ -77,6 +77,7 @@ prefix and compose with `|` for pipes.
 | `#attack [N]` | N sub-agents meditate, then attack your plan before you build. |
 | `#audit <cmd>` | Codebase under oath: gate, debt, smell, sec, perf, bugs, arch, all. |
 | `#canon [path]` | Find facts written down in several languages, name the canonical home for each. |
+| `#audit drift [path]` | Find one fact declared at two versions across manifests and config. |
 | `#plan` | Plan mode. Checkbox steps, confidence scores, net LOC per phase. |
 | `#dev` | Detect and start the local dev environment. |
 | `#version` | Report the installed toolkit version. |
@@ -206,6 +207,19 @@ fix c1 c2
 Each finding names a canonical home and the generation or import path that keeps
 the other copies honest. Where no such path exists, the agent proposes a check
 that fails loudly instead.
+
+`#canon` covers a fact restated across languages. Its sibling covers the same
+fact restated across manifests in one language, which `canon` cannot see:
+
+```
+#audit drift .
+fix h1 h2
+```
+
+Reading every manifest in a large polyglot repo costs under 10k tokens, so this
+runs on the whole tree rather than a sample. Most of its value is knowing what
+is not drift: Cargo workspace inheritance, `path` and `catalog:` specifiers,
+peer dependency ranges, and semver-equal spellings like `^19` and `^19.0.0`.
 
 **Habits inside the scaffold.**
 
