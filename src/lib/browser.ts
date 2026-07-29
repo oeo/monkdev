@@ -1,4 +1,7 @@
-import { launch, Browser, Page } from "rebrowser-puppeteer-core";
+// type-only, so the CLI never loads puppeteer for tree/context/canon. Loading
+// it at module scope leaves stdout unable to flush past the 64KB pipe buffer,
+// silently truncating any piped output larger than that.
+import type { Browser, Page } from "rebrowser-puppeteer-core";
 
 // Promise-cached so concurrent callers share one launch instead of racing
 // into a second Chrome. A disconnect clears the cache for relaunch.
@@ -34,7 +37,7 @@ export function persistBrowser(): void {
 export function getBrowser(): Promise<Browser> {
   if (_browser) return _browser;
 
-  const launching = launch({
+  const launching = import("rebrowser-puppeteer-core").then(({ launch }) => launch({
     executablePath: findChrome(),
     headless: true,
     args: [
@@ -43,7 +46,7 @@ export function getBrowser(): Promise<Browser> {
       "--disable-blink-features=AutomationControlled",
     ],
     ignoreDefaultArgs: ["--enable-automation"],
-  }).then((browser) => {
+  })).then((browser) => {
     browser.on("disconnected", () => {
       if (_browser === launching) _browser = null;
     });
