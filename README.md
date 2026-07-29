@@ -73,9 +73,9 @@ prefix and compose with `|` for pipes.
 | `#recall [N\|topic\|all]` | Search past reflection commits. |
 | `#spawn N <desc>` | Run N sub-agents on scoped tasks in parallel. |
 | `#cur` / `#cur done` | Read or update the cur.md task list. |
-| `#versus [N]` | N adversarial sub-agents attack your plan before you build. |
+| `#attack [N]` | N sub-agents meditate, then attack your plan before you build. |
 | `#audit <cmd>` | Codebase under oath: gate, debt, smell, sec, perf, bugs, arch, all. |
-| `#plan` | Plan mode. No edits without consent. Repeat to deepen. |
+| `#plan` | Plan mode. Checkbox steps, confidence scores, net LOC per phase. |
 | `#dev` | Detect and start the local dev environment. |
 | `#version` | Report the installed toolkit version. |
 | `#help` | Print all commands as a man page. |
