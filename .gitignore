@@ -25,6 +25,9 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # bench baselines hold wall-clock times, which are machine-specific
 bench
 
+# evaluation corpus, refetched by scripts/corpus.sh at pinned SHAs
+corpus
+
 # caches
 .eslintcache
 .cache

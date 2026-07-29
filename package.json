@@ -10,8 +10,9 @@
   "scripts": {
     "monk": "bun run src/cli.ts",
     "mcp": "bun run src/mcp.ts",
-    "test": "bun test",
-    "bench": "bun run scripts/bench.ts"
+    "test": "bun test tests/",
+    "bench": "bun run scripts/bench.ts",
+    "corpus": "bash scripts/corpus.sh"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",
