@@ -14,11 +14,11 @@ test("context tool packs files into XML", async () => {
     const { stdout } = await $`./bin/monk context test_ctx_dir --raw`.quiet();
     const out = stdout.toString();
 
-    expect(out).toContain('<context directory="test_ctx_dir">');
-    expect(out).toContain('<file path="a.ts">');
+    expect(out).toContain('<context directory="test_ctx_dir"');
+    expect(out).toContain('<file path="a.ts"');
     expect(out).toContain("console.log('a');");
     expect(out).toContain("</file>");
-    expect(out).toContain('<file path="b.ts">');
+    expect(out).toContain('<file path="b.ts"');
     expect(out).not.toContain("test.log"); // Should respect gitignore
 
     // Test stats-only
@@ -45,7 +45,7 @@ test("context --min filters by importance score", async () => {
 
     const { stdout } = await $`./bin/monk context ${D} --raw --min ${top}`.quiet();
     const out = stdout.toString();
-    expect(out).toContain('<file path="package.json">');
+    expect(out).toContain('<file path="package.json"');
     expect(out).not.toContain("note.txt");
   } finally {
     await rm(D, { recursive: true, force: true });
@@ -64,8 +64,8 @@ test("context --max-tokens packs top files and reports exclusions", async () => 
     expect(stdout.toString()).toContain("excluded 1 files");
 
     const xml = await Bun.file(out).text();
-    expect(xml).toContain('<file path="small.ts">');
-    expect(xml).not.toContain('<file path="large.ts">');
+    expect(xml).toContain('<file path="small.ts"');
+    expect(xml).not.toContain('<file path="large.ts"');
   } finally {
     await rm(D, { recursive: true, force: true });
   }
@@ -102,8 +102,8 @@ test("context stubs byte-identical duplicates and escapes </file>", async () => 
     expect(out).toContain('duplicateOf="a.ts"');
     expect(out.split("export const same = 1;").length - 1).toBe(1);
 
-    // literal </file> in content cannot break the XML structure
-    expect(out).toContain("<\\/file>");
+    // literal </file> in content escaped; raw tag cannot close the XML
+    expect(out).toContain("&lt;\\/file&gt;");
     expect(out).not.toContain('const s = "</file>"');
   } finally {
     await rm(D, { recursive: true, force: true });
@@ -118,7 +118,8 @@ test.skipIf(!Bun.which("rtk"))("context tool filters through rtk when installed"
     const { stdout } = await $`./bin/monk context test_ctx_rtk`.quiet();
     const out = stdout.toString();
 
-    expect(out).toContain('<context directory="test_ctx_rtk" filter="rtk-minimal">');
+    expect(out).toContain('<context directory="test_ctx_rtk"');
+    expect(out).toContain('filter="rtk-minimal"');
     expect(out).toContain("console.log('a');");
     expect(out).not.toContain("a comment rtk strips");
 

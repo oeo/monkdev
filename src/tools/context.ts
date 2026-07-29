@@ -6,7 +6,10 @@ import { randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
 import { collectFiles, estimateTokens, packFiles, printHistogram } from "../lib/walk";
 
-const CONTEXT_BUDGET = 150_000; // tokens a meditation can realistically fit
+const CONTEXT_BUDGET = 150_000;
+
+const xmlAttr = (s: string) => s.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
+const xmlBody = (s: string) => s.replaceAll("</file>", "<\\/file>").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 
 export default defineCommand({
   meta: {
@@ -100,19 +103,19 @@ export default defineCommand({
       return;
     }
 
-    let output = `<context directory="${targetDir}"${rtk ? ' filter="rtk-minimal"' : ""}>\n`;
-    // Byte-identical bodies collapse into a stub pointing at the first copy.
+    let output = `<context directory="${targetDir}" files="${files.length}" totalTokens="${totalTokens}"` +
+      `${args.min ? ` min="${args.min}"` : ""}${budget > 0 ? ` maxTokens="${budget}"` : ""}` +
+      `${rtk ? ' filter="rtk-minimal"' : ""}>\n`;
     const seen = new Map<ReturnType<typeof Bun.hash>, string>();
     for (const f of files) {
       const hash = Bun.hash(f.text);
       const first = seen.get(hash);
       if (first !== undefined) {
-        output += `  <file path="${f.path}" duplicateOf="${first}"/>\n`;
+        output += `  <file path="${xmlAttr(f.path)}" duplicateOf="${xmlAttr(first)}"/>\n`;
         continue;
       }
       seen.set(hash, f.path);
-      // A body containing the closing tag would corrupt the XML structure.
-      output += `  <file path="${f.path}">\n${f.text.replaceAll("</file>", "<\\/file>")}\n  </file>\n`;
+      output += `  <file path="${xmlAttr(f.path)}" score="${f.score}" tokens="${estimateTokens(f.text)}">\n${xmlBody(f.text)}\n  </file>\n`;
     }
     output += `</context>`;
 

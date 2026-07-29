@@ -44,19 +44,18 @@ test("recursive .gitignore (anchored) and .monkignore semantics", async () => {
   // --- context ---
   const { stdout: ctxOut } = await $`./bin/monk context ${D}`.quiet();
   const ctx = ctxOut.toString();
-  expect(ctx).toContain('<file path="main.ts">');
-  expect(ctx).toContain('<file path="sub/keep.ts">');
-  expect(ctx).not.toContain('<file path="app.log">');
-  // anchored nested gitignore: file omitted (its content must be absent)
-  expect(ctx).not.toContain('<file path="sub/local.txt">');
+  expect(ctx).toContain('<file path="main.ts"');
+  expect(ctx).toContain('<file path="sub/keep.ts"');
+  expect(ctx).not.toContain('<file path="app.log"');
+  expect(ctx).not.toContain('<file path="sub/local.txt"');
   expect(ctx).not.toContain("anchored ignore");
   // monkignored content must not fog general meditation
-  expect(ctx).not.toContain('<file path="vendor/lib.ts">');
+  expect(ctx).not.toContain('<file path="vendor/lib.ts"');
   expect(ctx).not.toContain("export const z = 3;");
 
   // --- context targeting the monkignored folder directly still works ---
   const { stdout: vendorOut } = await $`./bin/monk context ${D}/vendor`.quiet();
-  expect(vendorOut.toString()).toContain('<file path="lib.ts">');
+  expect(vendorOut.toString()).toContain('<file path="lib.ts"');
 
   await rm(D, { recursive: true, force: true });
 });
