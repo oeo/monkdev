@@ -12,7 +12,8 @@
     "mcp": "bun run src/mcp.ts",
     "test": "bun test tests/",
     "bench": "bun run scripts/bench.ts",
-    "corpus": "bash scripts/corpus.sh"
+    "corpus": "bash scripts/corpus.sh",
+    "efficacy": "bun run scripts/efficacy.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",

@@ -104,6 +104,16 @@ bun run bench --save             # re-record the baseline
 bun run bench --watch            # re-measure on every save under src/
 ```
 
+```bash
+bun run corpus                   # fetch the pinned evaluation corpus
+bun run efficacy                 # score canon recall and noise against it
+```
+
+`corpus` fetches five implementations of one API spec in four languages, pinned
+by SHA. Because the spec defines which facts are restated, `efficacy` can score
+recall objectively. Its precision figure is a proxy: it penalizes known
+vocabulary only, so it cannot catch novel noise.
+
 Records median wall time, output tokens, and result counts for each tool against
 a real repo, then prints the delta against your local baseline. Tokens and counts
 are deterministic; wall time carries a few percent of noise, so treat anything
