@@ -14,6 +14,17 @@ const STOP = new Set([
   "return", "import", "export", "public", "static", "const", "async", "await",
   "utf8", "text", "json", "html", "http", "https", "test", "tests", "main", "index",
   "default", "options", "config", "path", "file", "line", "list", "item", "args",
+  // English function words: prose and comments, never a fact worth canonicalizing
+  "that", "this", "with", "from", "have", "has", "had", "will", "would", "could",
+  "should", "must", "can", "may", "the", "and", "for", "not", "but", "are", "was",
+  "were", "been", "being", "they", "them", "their", "there", "these", "those",
+  "into", "onto", "over", "under", "after", "before", "while", "about", "above",
+  "below", "between", "because", "however", "therefore", "when", "where", "what",
+  "which", "than", "then", "such", "some", "only", "also", "both", "each", "same",
+  "you", "your", "our", "its", "out", "who", "how", "why", "all", "any", "one",
+  "two", "new", "old", "get", "set", "use", "used", "using", "does", "did", "done",
+  // protocol vocabulary: defined by an RFC, not by the project
+  "contenttype", "applicationjson", "authorization", "accept", "useragent",
 ]);
 
 const PATTERNS = [
@@ -35,7 +46,7 @@ export default defineCommand({
   args: {
     path: { type: "positional", description: "Directory to scan", required: false, default: "." },
     min: { type: "string", description: "Only scan files with importance score >= this (1-10)", required: false },
-    "max-files": { type: "string", description: "Drop clusters spanning more than N files; above this a token is vocabulary, not a fact", default: "12" },
+    "max-files": { type: "string", description: "Drop clusters spanning more than N files. Bare numbers are capped at 12 regardless, since a recurring integer is usually coincidence while a recurring identifier is usually a restated fact", default: "25" },
     top: { type: "string", description: "Report only the N widest-spanning clusters", default: "40" },
     json: { type: "boolean", description: "Output JSON", default: false },
   },
@@ -63,7 +74,7 @@ export default defineCommand({
           for (const m of lines[i]!.matchAll(p)) {
             const raw = m[1] ?? m[2] ?? m[3] ?? "";
             const key = norm(raw);
-            if (key.length < 4 || STOP.has(key)) continue;
+            if (key.length < 3 || STOP.has(key)) continue;
             let hits = groups.get(key);
             if (!hits) groups.set(key, (hits = new Map()));
             hits.set(`${f.path}:${i + 1}`, { file: f.path, line: i + 1, raw, lang });
@@ -80,7 +91,12 @@ export default defineCommand({
         files: [...new Set(hits.map((h) => h.file))],
         variants: [...new Set(hits.map((h) => h.raw))],
       }))
-      .filter((c) => c.langs.length >= 2 && c.files.length >= 2 && c.files.length <= ceiling)
+      .filter((c) => {
+        // a bare integer recurring across many files is coincidence (sizes, CSS,
+        // version fragments); an identifier recurring that widely is a real fact
+        const cap = /^\d+$/.test(norm(c.variants[0]!)) ? Math.min(12, ceiling) : ceiling;
+        return c.langs.length >= 2 && c.files.length >= 2 && c.files.length <= cap;
+      })
       .sort((a, b) => b.langs.length - a.langs.length || b.files.length - a.files.length);
 
     const shown = clusters.slice(0, top);
