@@ -47,6 +47,7 @@ override detection). Everything else works out of the box.
 | `outline` | Extracts classes and functions, drops the bodies. |
 | `deps` | Maps dependency graphs (Node, Rust, Go, Python). |
 | `symbol` | Finds definitions across languages. |
+| `canon` | Clusters facts restated in more than one language: candidate drift. |
 | `brave-search` | Searches the web via the Brave API. |
 | `fetch-url` | Renders and extracts web pages through stealth Chrome. |
 | `screenshot-url` | Captures a PNG of a rendered page. |
@@ -75,6 +76,7 @@ prefix and compose with `|` for pipes.
 | `#cur` / `#cur done` | Read or update the cur.md task list. |
 | `#attack [N]` | N sub-agents meditate, then attack your plan before you build. |
 | `#audit <cmd>` | Codebase under oath: gate, debt, smell, sec, perf, bugs, arch, all. |
+| `#canon [path]` | Find facts written down in several languages, name the canonical home for each. |
 | `#plan` | Plan mode. Checkbox steps, confidence scores, net LOC per phase. |
 | `#dev` | Detect and start the local dev environment. |
 | `#version` | Report the installed toolkit version. |
@@ -92,6 +94,20 @@ lockfiles, minified artifacts, and files over 500KB.
 A `.monkignore` file (same syntax) fogs paths from general meditation. `context`
 drops them, `tree` still lists them with a `(monk-omit)` tag, and you can always
 target a fogged folder explicitly.
+
+## Benchmarks
+
+```bash
+bun run bench                    # defaults to ~/www/ghostpeek-v2
+bun run bench /path/to/repo      # one baseline per target
+bun run bench --save             # re-record the baseline
+bun run bench --watch            # re-measure on every save under src/
+```
+
+Records median wall time, output tokens, and result counts for each tool against
+a real repo, then prints the delta against your local baseline. Tokens and counts
+are deterministic; wall time carries a few percent of noise, so treat anything
+under 5% as flat. Baselines are gitignored because timings are machine-specific.
 
 ## Extending
 
