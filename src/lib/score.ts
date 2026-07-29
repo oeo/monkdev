@@ -71,7 +71,9 @@ export function scoreFile(path: string, loc: number, bytes = 0, head = ""): Scor
   else if (DOC_EXTS.has(ext)) s += 6;
   else if (DATA_EXTS.has(ext)) s += 4;
 
-  if (MANIFESTS.has(base)) s += 25;
+  // The root manifest defines the project; a nested one is a subcomponent's
+  // build file and must not outrank the source it builds.
+  if (MANIFESTS.has(base)) s += dirs.length === 0 ? 25 : 12;
   else if (AGENT_DOCS.has(stem) && DOC_EXTS.has(ext)) s += dirs.length === 0 ? 34 : 20;
   // The root README routes the repo; a nested or vendored README is a plain doc.
   else if (stem === "readme" && dirs.length === 0) s += 12;
@@ -113,6 +115,8 @@ export function scoreFile(path: string, loc: number, bytes = 0, head = ""): Scor
   if (GENERATED_HEAD.test(head)) capAt(2);
   if (ext === "map" || base.endsWith(".min.js") || base.endsWith(".min.css")) capAt(1);
   if (ext === "svg") capAt(2);
+  // Compiled firmware images: text on disk, opaque to a reader.
+  if (ext === "hex" || ext === "s19" || ext === "srec") capAt(2);
   // Runtime logs: visible, never above deep-meditation noise.
   if (ext === "log") capAt(3);
   if (stem === "changelog" && !CODE_EXTS.has(ext)) capAt(2);
