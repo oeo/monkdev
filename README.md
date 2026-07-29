@@ -85,6 +85,146 @@ prefix and compose with `|` for pipes.
 Full ritual semantics live in [CLAUDE.md](CLAUDE.md) under *Explicit Command
 Directives*.
 
+## Working Effectively
+
+The tools are cheap. The mistakes are expensive. Each recipe below exists
+because the shortcut it replaces costs more tokens or returns worse answers.
+
+**Land in an unfamiliar repo.** Shape first, then gauge, then ingest.
+
+```bash
+monk tree                        # ranked map; read the histogram in the footer
+monk context . --stats-only      # what a given --min would actually cost
+monk context . --min 7           # writes to a temp file above ~10k tokens
+```
+
+Take `--min` from the printed histogram, never from memory. Scores are relative
+to the scan root, so a threshold read at the root does not transfer to a
+subtree, and the scale turns rank-percentile once a repo passes 100 files.
+Higher `--min` means fewer files, so `--min 10` is the narrowest view there is,
+not an overview. For shape, use `tree`.
+
+**Chase a defect.** Go straight to the definition, then read whole files.
+
+```bash
+monk symbol handleAuth           # cross-language definitions
+monk catfiles src/a.ts src/b.ts  # one call, whole files, LOC headers
+monk outline src/big.ts          # signatures only, when shape is enough
+```
+
+**Scope a refactor.** Budget the ingest instead of guessing a threshold.
+
+```bash
+monk tree packages/api --min 6
+monk context packages/api --max-tokens 60000   # packs top-scored files that fit
+monk deps packages/api                         # dev and indirect listed apart
+```
+
+**Find the source of truth.** `canon` clusters facts restated across languages.
+
+```bash
+monk canon packages/api          # narrow by path
+monk canon . --max-files 100     # parallel implementations of one contract
+```
+
+Narrow by path rather than raising `--min`. A high `--min` keeps only manifests
+and entry points, which share generic vocabulary and lower precision. Raise
+`--max-files` when several services or SDKs restate one model, because there
+the shared fact is the widest thing in the repo. Output is a candidate list.
+Read the copies before calling anything drift.
+
+**Prove the change helped.** Record a baseline, change one thing, compare.
+
+```bash
+bun run bench --save             # before
+bun run bench                    # after, with deltas
+```
+
+Habits that pay for themselves:
+
+| Instead of | Use | Why |
+|---|---|---|
+| `cat` / `head` / `tail` | `catfiles` | One call, whole files, no slicing blind |
+| `grep` for a definition | `symbol` | Finds it across languages, ranked by importance |
+| Dumping `context` to the terminal | Let it write a file, then read it | Terminals truncate; the file does not |
+| Raising `--min` to cut canon noise | Narrowing by path | High `--min` lowers canon precision |
+| Asserting a change worked | `bun run bench` | Wall time lies; the token and count columns do not |
+
+## Prompting the Agent
+
+The recipes above are what the agent runs. These are what you type. Directives
+compose, and the order matters more than the wording.
+
+**Refactor without breaking things.** Ingest, plan, attack, then build.
+
+```
+#meditate 6 on packages/auth
+#plan consolidate the three token validators into one
+#attack 3
+```
+
+`#plan` emits checkbox steps carrying a confidence score each and a net LOC
+delta per phase, and any refactor plan must end with a cleanup phase. `#attack`
+spawns adversaries that meditate before criticizing, each returning a confidence
+score and the single largest risk. A third `#plan` leaves plan mode and
+executes.
+
+Ask for subtraction in the prompt, or you will get addition:
+
+```
+#plan remove the adapter layer in src/http and inline its two call sites.
+Net LOC must be negative. If it cannot be, say why and stop.
+```
+
+**Remove dead code.** Audit first, then reference findings by ID.
+
+```
+#audit debt smell packages/api
+fix h1 m3
+```
+
+One caveat decides whether this is safe. Monk finds definitions, not callers.
+`symbol` answers "where is this defined" across languages, and no tool here
+answers "who calls this". For deletion, the second question is the one that
+matters, so plain `grep` is correct for call sites. The directive banning grep
+bans it for definitions only.
+
+```
+#meditate on packages/api
+List every exported symbol. For each, take the definition from monk_symbol and
+the call sites from grep. Report only those with no caller outside their own
+file, with counts. Delete nothing until I confirm the list.
+```
+
+**Collapse duplicated truth.** Findings name where the fact should live.
+
+```
+#canon packages/api
+fix c1 c2
+```
+
+Each finding names a canonical home and the generation or import path that keeps
+the other copies honest. Where no such path exists, the agent proposes a check
+that fails loudly instead.
+
+**Habits inside the scaffold.**
+
+| Habit | Why it pays |
+|---|---|
+| Open non-trivial work with `#meditate <target>` | The pre-flight loads project skills, `AGENTS.md`, and recent reflections before anything is proposed |
+| `#recall <topic>` before re-reading source | Past decisions and their reasoning live in commit bodies, far cheaper than re-ingesting the repo |
+| `#spawn N <task>` for scoped parallel work | Sub-agents inherit the directives and are handed a contract that makes them meditate before acting |
+| `#attack` before any non-trivial build | Losing an argument to five adversaries is cheaper than shipping the plan |
+| `#reflect` at the end of a session | The next session starts with this one's reasoning, not just its diff |
+
+Two phrases change the answer you get:
+
+- **root cause.** The agent must emit `root cause: <file:symbol> | fix lands:
+  <file:symbol>` before editing. Two different places means it is patching a
+  symptom, and it has to say so.
+- **net LOC.** Forces a plan to account for what it adds rather than only for
+  what it delivers.
+
 ## Ignore Rules
 
 `tree` and `context` honor `.gitignore` at every directory level. A built-in
@@ -104,6 +244,13 @@ bun run bench --save             # re-record the baseline
 bun run bench --watch            # re-measure on every save under src/
 ```
 
+`bench` records median wall time, output tokens, and result counts for each tool
+against a real repo, then prints the delta against your local baseline. Tokens
+and counts are deterministic. Wall time carries a few percent of noise within a
+run and more across sessions, so treat anything under 5% as flat and distrust
+cross-session comparisons. Baselines are gitignored because timings are
+machine-specific.
+
 ```bash
 bun run corpus                   # fetch the pinned evaluation corpus
 bun run efficacy                 # score canon recall and noise against it
@@ -113,11 +260,6 @@ bun run efficacy                 # score canon recall and noise against it
 by SHA. Because the spec defines which facts are restated, `efficacy` can score
 recall objectively. Its precision figure is a proxy: it penalizes known
 vocabulary only, so it cannot catch novel noise.
-
-Records median wall time, output tokens, and result counts for each tool against
-a real repo, then prints the delta against your local baseline. Tokens and counts
-are deterministic; wall time carries a few percent of noise, so treat anything
-under 5% as flat. Baselines are gitignored because timings are machine-specific.
 
 ## Extending
 
