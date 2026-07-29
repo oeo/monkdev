@@ -9,5 +9,6 @@ import symbol from "./symbol";
 import context from "./context";
 import deps from "./deps";
 import outline from "./outline";
+import canon from "./canon";
 
-export const tools = [braveSearch, fetchUrl, screenshot, list, describe, catfiles, tree, symbol, context, deps, outline];
+export const tools = [braveSearch, fetchUrl, screenshot, list, describe, catfiles, tree, symbol, context, deps, outline, canon];
