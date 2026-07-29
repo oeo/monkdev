@@ -24,14 +24,17 @@ test("deps parses package.json, Cargo.toml, and pyproject.toml correctly", async
     const { stdout } = await $`./bin/monk deps test_deps_dir --json`.quiet();
     const res = JSON.parse(stdout.toString());
 
+    // dev deps live in their own bucket: merging them overstates the runtime surface
     const nodeDeps = res.find((r: any) => r.type === "Node (package.json)");
     expect(nodeDeps.deps).toContain("react");
-    expect(nodeDeps.deps).toContain("typescript");
+    expect(nodeDeps.deps).not.toContain("typescript");
+    expect(res.find((r: any) => r.type === "Node (package.json dev)").deps).toEqual(["typescript"]);
 
     const rustDeps = res.find((r: any) => r.type === "Rust (Cargo.toml)");
     expect(rustDeps.deps).toContain("serde");
     expect(rustDeps.deps).toContain("tokio");
-    expect(rustDeps.deps).toContain("mockall");
+    expect(rustDeps.deps).not.toContain("mockall");
+    expect(res.find((r: any) => r.type === "Rust (Cargo.toml dev)").deps).toEqual(["mockall"]);
     expect(rustDeps.deps).not.toContain("version");
     expect(rustDeps.deps).not.toContain("features");
     expect(rustDeps.deps).not.toContain("not_a_dep");

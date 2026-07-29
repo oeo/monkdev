@@ -5,7 +5,7 @@ import { join } from "node:path";
 // [dependencies], [dev-dependencies], [build-dependencies], with optional
 // workspace./target.<triple>. prefix; [dependencies.<name>] declares <name>.
 const CARGO_DEP_SECTION =
-  /^\[(?:workspace\.|target\.[^.]+\.)?(?:dev-|build-)?dependencies(?:\.(.+))?\]$/;
+  /^\[(?:workspace\.|target\.[^.]+\.)?(dev-|build-)?dependencies(?:\.(.+))?\]$/;
 
 export default defineCommand({
   meta: {
@@ -37,13 +37,10 @@ export default defineCommand({
     if (existsSync(pkgPath)) {
       try {
         const pkg = await Bun.file(pkgPath).json();
-        const deps = [
-          ...Object.keys(pkg.dependencies || {}),
-          ...Object.keys(pkg.devDependencies || {}),
-          ...Object.keys(pkg.peerDependencies || {})
-        ];
-        if (deps.length > 0) {
-          results.push({ type: "Node (package.json)", deps });
+        // kept apart: a survey that merges dev into prod overstates the runtime surface
+        for (const [field, label] of [["dependencies", ""], ["devDependencies", " dev"], ["peerDependencies", " peer"]] as const) {
+          const deps = Object.keys(pkg[field] || {});
+          if (deps.length > 0) results.push({ type: `Node (package.json${label})`, deps });
         }
       } catch (e) {
         warn(pkgPath, e);
@@ -55,25 +52,30 @@ export default defineCommand({
     if (existsSync(cargoPath)) {
       try {
         const text = await Bun.file(cargoPath).text();
-        const deps: string[] = [];
-        let inDeps = false;
+        // bucketed by kind, so a crate in both [dependencies] and
+        // [dev-dependencies] is reported once per kind rather than twice over
+        const buckets = new Map<string, Set<string>>();
+        const add = (k: string, name: string) =>
+          buckets.set(k, (buckets.get(k) ?? new Set()).add(name));
+        let kind: string | null = null;
 
         for (const line of text.split("\n")) {
           const t = line.trim();
           if (t.startsWith("[") && t.endsWith("]")) {
             const section = CARGO_DEP_SECTION.exec(t);
+            const k = section ? { "dev-": " dev", "build-": " build" }[section[1] ?? ""] ?? "" : null;
             // [dependencies.tokio]: tokio is the dep, its keys are config.
-            if (section?.[1]) deps.push(section[1]);
-            inDeps = !!section && !section[1];
+            if (section?.[2]) { add(k!, section[2]); kind = null; }
+            else kind = k;
             continue;
           }
-          if (inDeps && t && !t.startsWith("#")) {
+          if (kind !== null && t && !t.startsWith("#")) {
             const pkgName = t.split("=")[0]?.trim();
-            if (pkgName) deps.push(pkgName);
+            if (pkgName) add(kind, pkgName);
           }
         }
-        if (deps.length > 0) {
-          results.push({ type: "Rust (Cargo.toml)", deps });
+        for (const [k, deps] of buckets) {
+          if (deps.size > 0) results.push({ type: `Rust (Cargo.toml${k})`, deps: [...deps] });
         }
       } catch (e) {
         warn(cargoPath, e);
@@ -136,6 +138,7 @@ export default defineCommand({
       try {
         const text = await Bun.file(goPath).text();
         const deps: string[] = [];
+        const indirect: string[] = []; // go.mod lists the whole transitive set; merging them overstates direct use
         let inRequire = false;
 
         for (const line of text.split("\n")) {
@@ -150,15 +153,14 @@ export default defineCommand({
           }
           if (inRequire && t && !t.startsWith("//")) {
             const name = t.split(" ")[0];
-            if (name) deps.push(name);
+            if (name) (t.includes("// indirect") ? indirect : deps).push(name);
           } else if (t.startsWith("require ") && !t.endsWith("(")) {
             const name = t.split(" ")[1];
-            if (name) deps.push(name);
+            if (name) (t.includes("// indirect") ? indirect : deps).push(name);
           }
         }
-        if (deps.length > 0) {
-          results.push({ type: "Go (go.mod)", deps });
-        }
+        if (deps.length > 0) results.push({ type: "Go (go.mod)", deps });
+        if (indirect.length > 0) results.push({ type: "Go (go.mod indirect)", deps: indirect });
       } catch (e) {
         warn(goPath, e);
       }
