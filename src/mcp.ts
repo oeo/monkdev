@@ -18,6 +18,8 @@ const server = new Server(
     capabilities: {
       tools: {},
     },
+    instructions:
+      "tree before context (pick --min from histogram). symbol for definition lookup, not grep. catfiles for reading known files, not exploring. deps for ecosystem survey. context packs top-scored files; narrow with --min or --max-tokens. fetch-url/screenshot-url need Chrome or MONK_CHROME.",
   }
 );
 

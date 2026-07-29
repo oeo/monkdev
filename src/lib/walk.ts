@@ -238,6 +238,7 @@ export async function collectFiles(targetDir: string): Promise<WalkResult> {
       try {
         if (await isBinary(file)) continue;
         const text = await file.text();
+        if (text.includes("\0")) continue;
         const path = relative(targetDir, fullPath);
         const loc = countLines(text);
         const { raw, cap } = scoreFile(path, loc, file.size, text.slice(0, 300));

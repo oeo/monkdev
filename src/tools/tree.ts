@@ -75,8 +75,10 @@ export default defineCommand({
     printHistogram(all.filter((f) => !f.monkIgnored));
 
     const total = files.reduce((sum, f) => sum + estimateTokens(f.text), 0);
+    const monkOmitted = all.filter((f) => f.monkIgnored).length;
+    const omitNote = monkOmitted > 0 ? ` (${monkOmitted} omitted by .monkignore)` : "";
     const packNote = budget > 0 ? ` (max-tokens=${budget}: excluded ${excluded} files)` : "";
-    console.log(`\n${files.length} files, ~${total} tokens${min ? ` at min=${min}` : ""}${packNote}`);
+    console.log(`\n${files.length} files, ~${total} tokens${omitNote}${min ? ` at min=${min}` : ""}${packNote}`);
     if (oversizedWarning) console.log(oversizedWarning);
   },
 });

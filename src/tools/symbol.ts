@@ -30,10 +30,11 @@ export default defineCommand({
 
     // Dynamic Regex matching common definition keywords across Rust, TS, JS, Python, Go, Luau, C++
     const pattern = new RegExp(
-      `\\b(class|struct|enum|interface|type|fn|func|def|function|trait|impl|let|const|var|#define)\\s+(?:[a-zA-Z0-9_<>\\[\\]\\s]*\\s+)?\\b${symbolName}\\b|\\b${symbolName}\\s*[:=]\\s*(?:function|\\()`,
+      `^\\s*(?:export\\s+|pub\\s+)?(?:class|struct|enum|interface|type|fn|func|def|function|trait|impl|let|const|var|#define)\\s+(?:[^\\s]+\\s+)?${symbolName}\\b|^\\s*${symbolName}\\s*[:=]\\s*(?:function|\\()`,
+      "m",
     );
 
-    const results: { file: string; line: number; content: string }[] = [];
+    const results: { file: string; line: number; content: string; score: number }[] = [];
 
     for (const f of (await collectFiles(targetDir)).files) {
       const lines = f.text.split("\n");
@@ -43,19 +44,23 @@ export default defineCommand({
             file: resolve(targetDir, f.path),
             line: i + 1,
             content: lines[i].trim(),
+            score: f.score,
           });
         }
       }
     }
 
+    results.sort((a, b) => b.score - a.score || a.line - b.line);
+    const capped = results.slice(0, 50);
+
     if (args.json) {
-      console.log(JSON.stringify(results, null, 2));
+      console.log(JSON.stringify(capped.map(({ score, ...r }) => r), null, 2));
     } else {
-      if (results.length === 0) {
+      if (capped.length === 0) {
         console.log(`No definitions found for symbol: '${args.name}'`);
         return;
       }
-      for (const res of results) {
+      for (const res of capped) {
         console.log(`[${res.file}:${res.line}] -> ${res.content}`);
       }
     }

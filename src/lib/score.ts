@@ -109,7 +109,7 @@ export function scoreFile(path: string, loc: number, bytes = 0, head = ""): Scor
   // Large structured data is a dump, not architecture.
   if (DATA_EXTS.has(ext) && loc > 400) capAt(3);
   // Minified / single-line / base64 blobs.
-  if (bytes > 5000 && bytes / loc > 250) capAt(1);
+  if (bytes > 5000 && bytes / (loc || 1) > 250) capAt(1);
   if (GENERATED_HEAD.test(head)) capAt(2);
   if (ext === "map" || base.endsWith(".min.js") || base.endsWith(".min.css")) capAt(1);
   if (ext === "svg") capAt(2);
