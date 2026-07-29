@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 import { existsSync, watch } from "node:fs";
-import { homedir, tmpdir } from "node:os";
+import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 
 const MONK = join(import.meta.dir, "..", "bin", "monk");
@@ -11,13 +11,13 @@ const flags = new Set(process.argv.slice(2).filter((a) => a.startsWith("--")));
 const target = resolve(
   process.argv.slice(2).find((a) => !a.startsWith("--")) ??
     process.env.MONK_BENCH_TARGET ??
-    join(homedir(), "www/ghostpeek-v2"),
+    ".",
 );
 const runs = Number(process.env.MONK_BENCH_RUNS ?? 3);
 
 if (!existsSync(target)) throw new Error(`Bench target not found: ${target}`);
 
-// one baseline per target: a shared file would diff ghostpeek numbers against monk numbers
+// one baseline per target: a shared file would diff one target's numbers against another's
 const BASELINE = join(import.meta.dir, "..", "bench", `${basename(target)}.json`);
 
 interface Case { name: string; args: string[]; out?: string }

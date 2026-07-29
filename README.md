@@ -75,7 +75,7 @@ prefix and compose with `|` for pipes.
 | `#spawn N <desc>` | Run N sub-agents on scoped tasks in parallel. |
 | `#cur` / `#cur done` | Read or update the cur.md task list. |
 | `#attack [N]` | N sub-agents meditate, then attack your plan before you build. |
-| `#audit <cmd>` | Codebase under oath: gate, debt, smell, sec, perf, bugs, arch, all. |
+| `#audit <cmd>` | Codebase under oath: gate, debt, smell, split, sec, perf, bugs, mod, arch, drift, all. |
 | `#canon [path]` | Find facts written down in several languages, name the canonical home for each. |
 | `#audit drift [path]` | Find one fact declared at two versions across manifests and config. |
 | `#plan` | Plan mode. Checkbox steps, confidence scores, net LOC per phase. |
@@ -252,7 +252,7 @@ target a fogged folder explicitly.
 ## Benchmarks
 
 ```bash
-bun run bench                    # defaults to ~/www/ghostpeek-v2
+bun run bench                    # defaults to the current directory
 bun run bench /path/to/repo      # one baseline per target
 bun run bench --save             # re-record the baseline
 bun run bench --watch            # re-measure on every save under src/
