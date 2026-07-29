@@ -76,10 +76,16 @@ export default defineCommand({
     // filter falls back to the raw text so meditation never goes blind.
     const rtk = args.raw ? null : Bun.which("rtk");
     if (rtk) {
-      for (const f of files) {
-        const proc = await $`${rtk} read -l minimal ${join(targetDir, f.path)}`.quiet().nothrow();
-        if (proc.exitCode === 0) f.text = proc.stdout.toString();
-      }
+      // stats-only reports a histogram over every visible file, so those need
+      // filtering too or the gauge quotes raw tokens the pack will never emit.
+      const queue = [...(args["stats-only"] ? visible : files)];
+      const filter = async () => {
+        for (let f = queue.pop(); f; f = queue.pop()) {
+          const proc = await $`${rtk} read -l minimal ${join(targetDir, f.path)}`.quiet().nothrow();
+          if (proc.exitCode === 0) f.text = proc.stdout.toString();
+        }
+      };
+      await Promise.all(Array.from({ length: 16 }, filter)); // spawn cost dominates; throughput plateaus near 16
     }
     const totalTokens = files.reduce((sum, f) => sum + estimateTokens(f.text), 0);
 
