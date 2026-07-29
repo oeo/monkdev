@@ -1,8 +1,17 @@
 import { test, expect } from "bun:test";
 import { $ } from "bun";
 import { mkdir, rm, writeFile } from "node:fs/promises";
+import { countLines } from "../src/lib/walk";
 
 const D = `test_walk_dir_${process.pid}`;
+
+test("countLines does not count a trailing newline as a line", () => {
+  expect(countLines("")).toBe(0);
+  expect(countLines("a")).toBe(1);
+  expect(countLines("a\n")).toBe(1);
+  expect(countLines("a\nb")).toBe(2);
+  expect(countLines("a\nb\n")).toBe(2);
+});
 
 test("tree skips oversized files, pyvenv dirs, and demotes duplicates", async () => {
   await rm(D, { recursive: true, force: true });

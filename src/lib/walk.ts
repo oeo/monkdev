@@ -94,6 +94,10 @@ export interface WalkResult {
 
 export const estimateTokens = (text: string) => Math.ceil(text.length / 4);
 
+// a trailing newline terminates the last line, it does not start a new one
+export const countLines = (text: string) =>
+  text.split("\n").length - (text === "" || text.endsWith("\n") ? 1 : 0);
+
 // Greedy score-descending pack (fewer tokens first within a score tier) that
 // keeps taking files while they fit the budget. Used by tree/context max-tokens.
 export function packFiles(files: WalkEntry[], maxTokens: number) {
@@ -235,7 +239,7 @@ export async function collectFiles(targetDir: string): Promise<WalkResult> {
         if (await isBinary(file)) continue;
         const text = await file.text();
         const path = relative(targetDir, fullPath);
-        const loc = text.split("\n").length;
+        const loc = countLines(text);
         const { raw, cap } = scoreFile(path, loc, file.size, text.slice(0, 300));
         found.push({ path, loc, bytes: file.size, text, score: 0, raw, cap, monkIgnored });
       } catch (e: any) {

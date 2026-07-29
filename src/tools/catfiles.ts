@@ -1,5 +1,5 @@
 import { defineCommand } from "citty";
-import { isBinary } from "../lib/walk";
+import { countLines, isBinary } from "../lib/walk";
 
 export default defineCommand({
   meta: {
@@ -58,20 +58,20 @@ export default defineCommand({
         console.log(`catfile ${filePath} (ERROR_FILE_UNREADABLE)`);
         continue;
       }
-      const lines = text.split("\n");
+      const loc = countLines(text);
 
-      if (lines.length > 5000) {
+      if (loc > 5000) {
         console.log(`catfile ${filePath} (ERROR_FILE_TOO_LARGE)`);
         continue;
       }
 
       if (args["stats-only"]) {
         const tokens = Math.ceil(text.length / 4);
-        console.log(`catfile ${filePath} (${lines.length} LOC, ~${tokens} tokens)`);
+        console.log(`catfile ${filePath} (${loc} LOC, ~${tokens} tokens)`);
         continue;
       }
 
-      console.log(`catfile ${filePath} (${lines.length} LOC):\n${text}`);
+      console.log(`catfile ${filePath} (${loc} LOC):\n${text}`);
     }
   },
 });

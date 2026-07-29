@@ -26,8 +26,8 @@ test("catfiles accepts comma-separated --files (the mcp invocation path)", async
     const { stdout } = await $`./bin/monk catfiles --files=test_cf_a.txt,test_cf_b.txt`.quiet();
     const output = stdout.toString();
 
-    expect(output).toContain("catfile test_cf_a.txt (2 LOC):\nalpha");
-    expect(output).toContain("catfile test_cf_b.txt (2 LOC):\nbeta");
+    expect(output).toContain("catfile test_cf_a.txt (1 LOC):\nalpha");
+    expect(output).toContain("catfile test_cf_b.txt (1 LOC):\nbeta");
   } finally {
     await $`rm -f test_cf_a.txt test_cf_b.txt`;
   }
