@@ -70,6 +70,7 @@ prefix and compose with `|` for pipes.
 | `#meditate [topic\|deeply\|N]` | Ingest context before acting. Target a topic, go deep, or set an importance threshold. |
 | `#do_research <topic>` | Parallel web searches plus page reads, then synthesize. |
 | `#update_docs` | Align docs with the current code truth. |
+| `#make_skill [scope]` | Preview a durable project skill from current-session work, then write it only after approval. |
 | `#reflect` | Record session wisdom as a git commit. |
 | `#recall [N\|topic\|all]` | Search past reflection commits. |
 | `#spawn N <desc>` | Run N sub-agents on scoped tasks in parallel. |
@@ -176,6 +177,14 @@ Ask for subtraction in the prompt, or you will get addition:
 #plan remove the adapter layer in src/http and inline its two call sites.
 Net LOC must be negative. If it cannot be, say why and stop.
 ```
+
+**Distill repeatable work.** Preview a project skill before adding it:
+
+```
+#make_skill browser verification
+```
+
+The command writes nothing until you approve the complete `SKILL.md` preview.
 
 **Remove dead code.** Audit first, then reference findings by ID.
 
