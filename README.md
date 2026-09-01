@@ -63,23 +63,23 @@ The tools document themselves from the CLI:
 ## Directives
 
 Directives are keywords you type to drive the workflow. All take the `#`
-prefix and compose with `|` for pipes.
+prefix and compose with `|` as ordered workflows.
 
 | Directive | What it does |
 |---|---|
-| `#meditate [topic\|deeply\|N]` | Ingest context before acting. Target a topic, go deep, or set an importance threshold. |
-| `#do_research <topic>` | Parallel web searches plus page reads, then synthesize. |
+| `#meditate [topic\|deeply\|N]` / `#med [topic\|deeply\|N]` | Ingest context before acting. Target a topic, go deep, or set an importance threshold. |
+| `#do_research <topic>` / `#do_r <topic>` | Parallel web searches plus page reads, then synthesize. |
 | `#update_docs` | Align docs with the current code truth. |
 | `#make_skill [scope]` | Preview a durable project skill from current-session work, then write it only after approval. |
 | `#reflect` | Record session wisdom as a git commit. |
 | `#recall [N\|topic\|all]` | Search past reflection commits. |
 | `#spawn N <desc>` | Run N sub-agents on scoped tasks in parallel. |
 | `#cur` / `#cur done` | Read or update the cur.md task list. |
-| `#attack [N]` | N sub-agents meditate, then attack your plan before you build. |
+| `#attack [N]` | N sub-agents attack your plan, then return one synthesized paused plan. |
 | `#audit <cmd>` | Codebase under oath: gate, debt, smell, split, sec, perf, bugs, mod, arch, drift, all. |
 | `#canon [path]` | Find facts written down in several languages, name the canonical home for each. |
 | `#audit drift [path]` | Find one fact declared at two versions across manifests and config. |
-| `#plan` | Plan mode. Checkbox steps, confidence scores, net LOC per phase. |
+| `#plan [task]` | Paused plan mode. Checkbox steps, confidence scores, net LOC per phase. |
 | `#dev` | Detect and start the local dev environment. |
 | `#version` | Report the installed toolkit version. |
 | `#help` | Print all commands as a man page. |
@@ -160,16 +160,15 @@ compose, and the order matters more than the wording.
 **Refactor without breaking things.** Ingest, plan, attack, then build.
 
 ```
-#meditate 6 on packages/auth
-#plan consolidate the three token validators into one
-#attack 3
+#med 6 on packages/auth
+#plan consolidate the three token validators into one | #attack 3
 ```
 
 `#plan` emits checkbox steps carrying a confidence score each and a net LOC
 delta per phase, and any refactor plan must end with a cleanup phase. `#attack`
 spawns adversaries that meditate before criticizing, each returning a confidence
-score and the single largest risk. A third `#plan` leaves plan mode and
-executes.
+score and the single largest risk. It synthesizes their findings into one revised
+plan and remains paused until you explicitly approve implementation.
 
 Ask for subtraction in the prompt, or you will get addition:
 
@@ -234,7 +233,7 @@ peer dependency ranges, and semver-equal spellings like `^19` and `^19.0.0`.
 
 | Habit | Why it pays |
 |---|---|
-| Open non-trivial work with `#meditate <target>` | The pre-flight loads project skills, `AGENTS.md`, and recent reflections before anything is proposed |
+| Open non-trivial work with `#med <target>` | The pre-flight loads project skills, `AGENTS.md`, and recent reflections before anything is proposed |
 | `#recall <topic>` before re-reading source | Past decisions and their reasoning live in commit bodies, far cheaper than re-ingesting the repo |
 | `#spawn N <task>` for scoped parallel work | Sub-agents inherit the directives and are handed a contract that makes them meditate before acting |
 | `#attack` before any non-trivial build | Losing an argument to five adversaries is cheaper than shipping the plan |
