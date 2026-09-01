@@ -4,7 +4,7 @@
 
 # Monkdev
 
-> A coding methodology for LLM agents. Measure. Prove. Cut.
+> Opinionated roleplay for efficient context frontloading and general agentic workflow automation.
 
 Monkdev combines token-aware codebase tools with a resident engineering
 methodology. Tools map and ingest source. Directives make agents seek root
