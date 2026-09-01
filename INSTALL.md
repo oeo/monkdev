@@ -13,6 +13,13 @@ not create.
 A full install is three parts: the code, tool access, and the monk directives
 in the scaffold's global prompt.
 
+Install the Caveman companion for terse agent output:
+
+    npx skills add JuliusBrussee/caveman
+
+Research also needs a Brave Search API token. Browser fetch and screenshot
+tools need Google Chrome or Chromium.
+
 ## 1. Get the code
 
 Requires git and bun (https://bun.sh).
@@ -57,7 +64,7 @@ Merge contract, exact and idempotent:
 - Restart the agent session.
 - MCP scaffolds: the `monk_tree` tool responds.
 - CLI scaffolds: `~/.monkdev/bin/monk tree` prints the ranked file map.
-- Optional: brave-search needs `BRAVE_API_KEY` in `~/.monkdev/.env`
-  (copy `.env.example`).
-- fetch-url and screenshot-url use the installed Google Chrome or Chromium,
+- `brave-search` and `#do_r` need `BRAVE_API_KEY` in `~/.monkdev/.env`
+  (copy `.env.example`). Get a token from https://brave.com/search/api/.
+- `fetch-url` and `screenshot-url` use installed Google Chrome or Chromium,
   auto-detected. Set `MONK_CHROME` to override. Nothing is downloaded.
