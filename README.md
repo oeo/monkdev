@@ -55,15 +55,17 @@ Type these into your coding agent. They are directives, not shell commands.
 #med on packages/auth
 ```
 
-**Plan, attack, and synthesize without implementing:**
+**Plan, attack, and implement in an isolated worktree:**
 
 ```text
 #plan consolidate token validation at its source | #attack 3
+implement this plan worktree
 ```
 
 Attackers check root-cause placement, simpler options, overengineering,
 maintainability, scope creep, pragmatism, net LOC, and test value. Result stays
-paused until explicit approval such as `implement this plan`.
+paused until explicit approval. The `worktree` modifier isolates primary-agent
+implementation; lifecycle rules live in [`CLAUDE.md`](CLAUDE.md).
 
 **Research with full source reads:**
 
@@ -111,7 +113,9 @@ fix c1
 | `#dev` | Detect and start project development environment. |
 | `#help` | Print full directive reference. |
 
-Full contracts live in [`CLAUDE.md`](CLAUDE.md).
+[`CLAUDE.md`](CLAUDE.md) supplies distributable Monk directives merged into
+user-global prompts. Root [`AGENTS.md`](AGENTS.md) governs contributors working
+on Monkdev itself.
 
 ## Tools
 
