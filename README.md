@@ -59,13 +59,14 @@ Type these into your coding agent. They are directives, not shell commands.
 
 ```text
 #plan consolidate token validation at its source | #attack 3
-implement this plan worktree
+implement this plan
 ```
 
 Attackers check root-cause placement, simpler options, overengineering,
 maintainability, scope creep, pragmatism, net LOC, and test value. Result stays
-paused until explicit approval. The `worktree` modifier isolates primary-agent
-implementation; lifecycle rules live in [`CLAUDE.md`](CLAUDE.md).
+paused until explicit approval. Approved plans automatically use a designated
+task worktree. Read-only attackers need none. Conflicting goals are scoped or
+sequenced before implementation; lifecycle rules live in [`CLAUDE.md`](CLAUDE.md).
 
 **Research with full source reads:**
 
@@ -94,6 +95,16 @@ fix c1
 #reflect
 ```
 
+**Finish the task, including PR and cleanup:**
+
+```text
+#merge
+```
+
+Includes remaining task reflections, PR submission, required checks and review,
+merge, return to the default branch, and owned-worktree cleanup. Stops at unsafe
+local state or failed gates. Other agents' work stays untouched.
+
 ## Directives
 
 | Directive | Purpose |
@@ -101,7 +112,7 @@ fix c1
 | `#meditate` / `#med` | Map, gauge, ingest, research, then act. |
 | `#do_research` / `#do_r` | Search in parallel, read full sources, synthesize. |
 | `#plan [task]` | Produce a paused, executable plan with confidence and net LOC. |
-| `#attack [N]` | Attack a plan and return one stronger paused plan. |
+| `#attack [N]` | Review a plan read-only and return one stronger paused plan. |
 | `#audit <cmd>` | Find gate, debt, smell, split, security, performance, bug, modernization, architecture, or drift issues. |
 | `#canon [path]` | Find facts restated across languages and name their canonical home. |
 | `#spawn N <desc>` | Run scoped sub-agents in parallel. |
@@ -110,6 +121,7 @@ fix c1
 | `#cur` / `#cur done` | Read or update human-owned `cur.md`. |
 | `#recall [N\|topic\|all]` | Read prior reflection decisions. |
 | `#reflect` | Commit session work and reasoning without pushing. |
+| `#merge [branch\|PR]` | Submit and merge the task PR, return to the default branch, and clean up safely. |
 | `#dev` | Detect and start project development environment. |
 | `#help` | Print full directive reference. |
 
