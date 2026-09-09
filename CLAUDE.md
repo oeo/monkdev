@@ -64,7 +64,13 @@ Finish implementation by reporting path, branch, base commit, status, changed fi
 
 The monk recognizes code by its shape. You must adhere to these absolute truths of implementation. Rule 1 is the golden rule. When two designs both work, the one with fewer lines wins.
 
-**1. Less is More (The Negative Code Protocol):** The best code is no code. The next best code is less code. Every new line of code increases cognitive load and degrades future AI context windows. When fixing an issue, your primary goal is to subtract, simplify, or reuse existing logic. If you must add code, minimize the lines of code (LOC). Never write 50 lines of abstract boilerplate when 5 lines of direct logic will suffice.
+**1. Less is More (The Cardinal Rule):** Expanding a local fix into unnecessary machinery is a failure, even when the code works and the operator approved the plan. The best code is no code. The next best code is the smallest behavior-equivalent change.
+
+* **Prove the gap first.** Before proposing a plan or editing, state briefly: existing behavior (`file:symbol`), required difference, smallest sufficient change. If the outcome already exists, say so. Do not manufacture work.
+* **Preserve the contract.** Compare solutions against the same requirements. Force termination is not graceful exit. If a cheaper solution changes an explicit requirement, explain that difference and ask one question before designing either solution.
+* **Try subtraction and existing primitives first.** Prefer removing an unnecessary condition, changing an argument, or calling an existing operation. When that operation already handles absence, do not add an existence check. Preserve meaningful failures and required boundary checks.
+* **Make additions earn their cost.** Every new dependency, protocol, thread, wrapper, retry, fallback, or state machine must satisfy a confirmed requirement that the simpler path cannot. Name that requirement before adding the mechanism. Hypothetical edge cases and resemblance to another subsystem are not evidence.
+* **Stop at sufficiency.** Do not expand scope through incidental cleanup, defensive checks, documentation, or tests unrelated to the changed behavior. If implementation grows beyond the justified mechanisms or files, revisit the smallest solution before continuing. Count total changed code and new concepts, not just net LOC.
 
 **2. Flat > Nested:** Deep nesting obscures data and creates cognitive load. You must use early returns.
 *Anti-Pattern (The Maze):*
@@ -293,6 +299,7 @@ covered  680 of 4400 files at min=6, top 40 of 2224 clusters read. NOT covered: 
 ```
 
 Rules for the plan:
+* **Minimality before ceremony.** Apply the Cardinal Rule before drafting. A small change gets one short phase containing only necessary edits and verification. Never invent work to populate this template; required worktree and approval rules still apply.
 *   **One intent, verified foundations.** Before listing steps, check whether the plan combines conflicting goals, incompatible contracts, or changes that invalidate each other's assumptions. Name the conflict and suggest smaller scopes. Sequence prerequisites first, verify them, then build dependent work on that foundation. Put unrelated objectives in separate plans; do not split cohesive work merely to create more branches. If the desired outcomes contradict each other, ask the operator to choose before seeking approval. The monk avoids competing changes and builds with intent and purpose.
 *   Every step names its file and its concrete change. "Refactor auth" is not a step. "Delete `wrapToken()`, inline its two callers" is a step.
 *   Every step carries a confidence score (0-100) that it works as written. Anything under 70 carries a fallback line directly beneath it.
@@ -339,7 +346,7 @@ Before reporting completion, verify:
 - Relevant files, contracts, callers, and tests were understood.
 - Root cause was identified; the fix lands there or debt is named honestly.
 - Existing valid patterns were followed.
-- No smaller direct solution exists.
+- Every added mechanism has a confirmed requirement that a smaller behavior-equivalent change cannot satisfy.
 - New abstractions carry behavioral value.
 - Control flow stays flat and errors preserve causes.
 - Tests verify behavior rather than implementation trivia.
